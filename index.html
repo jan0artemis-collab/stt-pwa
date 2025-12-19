@@ -36,7 +36,7 @@
 
 <h2>STT Sekolah</h2>
 
-<input id="nama" placeholder="Nama Guru">
+<input id="nama" placeholder="Nama Siswa">
 <select id="kegiatan">
   <option value="Pembelajaran">Pembelajaran</option>
   <option value="Rapat">Rapat</option>
@@ -75,19 +75,26 @@ function henti() {
 }
 
 function simpan() {
-  fetch('https://script.google.com/macros/s/AKfycbzj6ZnyfJvZ_o7ILQoiW1HO89w3QxXrMH_zv5i90E9v9z4B1E0yvJif4w_GtEbWlDZnZQ/exec', {
+  fetch('https://script.google.com/macros/s/AKfycbz7eordA43xwdJ08yYvqp5gq8uRJyKKbKn-Q0Pat3b0rvOFZ-RoOh_hhQO8M5HE88Rq_g/exec', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       nama: document.getElementById('nama').value,
       kegiatan: document.getElementById('kegiatan').value,
-      teks: document.getElementById('hasil').value,
-      waktu: new Date().toISOString()
+      teks: document.getElementById('hasil').value
     })
   })
-  .then(() => alert('Data berhasil disimpan'))
-  .catch(() => alert('Gagal menyimpan data'));
+  .then(res => res.json())
+  .then(res => {
+    if (res.status === 'success') {
+      alert('Data berhasil disimpan');
+      document.getElementById('hasil').value = '';
+    } else {
+      alert('Error: ' + res.message);
+    }
+  })
+  .catch(() => alert('Koneksi ke server gagal'));
 }
+
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js');
@@ -96,3 +103,4 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
+
