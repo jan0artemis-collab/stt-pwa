@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>STT Sekolah</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d6efd">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 16px;
+    }
+    h2 {
+      text-align: center;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 16px;
+    }
+    button {
+      background: #0d6efd;
+      color: white;
+      border: none;
+    }
+    .stop {
+      background: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+<h2>STT Sekolah</h2>
+
+<input id="nama" placeholder="Nama Guru">
+<select id="kegiatan">
+  <option value="Pembelajaran">Pembelajaran</option>
+  <option value="Rapat">Rapat</option>
+  <option value="Refleksi">Refleksi</option>
+  <option value="Lainnya">Lainnya</option>
+</select>
+
+<button onclick="mulai()">🎙 Mulai Rekam</button>
+<button class="stop" onclick="henti()">⏹ Hentikan</button>
+
+<textarea id="hasil" placeholder="Hasil suara akan muncul di sini..."></textarea>
+
+<button onclick="simpan()">💾 Simpan ke Spreadsheet</button>
+
+<script>
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const rec = new SpeechRecognition();
+
+rec.lang = 'id-ID';
+rec.continuous = true;
+
+rec.onresult = e => {
+  let teks = '';
+  for (let i = e.resultIndex; i < e.results.length; i++) {
+    teks += e.results[i][0].transcript + ' ';
+  }
+  document.getElementById('hasil').value += teks;
+};
+
+function mulai() {
+  rec.start();
+}
+
+function henti() {
+  rec.stop();
+}
+
+function simpan() {
+  fetch('https://script.google.com/macros/s/AKfycbzj6ZnyfJvZ_o7ILQoiW1HO89w3QxXrMH_zv5i90E9v9z4B1E0yvJif4w_GtEbWlDZnZQ/exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nama: document.getElementById('nama').value,
+      kegiatan: document.getElementById('kegiatan').value,
+      teks: document.getElementById('hasil').value,
+      waktu: new Date().toISOString()
+    })
+  })
+  .then(() => alert('Data berhasil disimpan'))
+  .catch(() => alert('Gagal menyimpan data'));
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
