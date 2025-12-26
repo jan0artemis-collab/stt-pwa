@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Setup Guide - Sistem Tugas Voice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .header p {
+      opacity: 0.9;
+      font-size: 16px;
+    }
+    .content {
+      padding: 40px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .section h2 {
+      color: #2c3e50;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 3px solid #667eea;
+    }
+    .step {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      border-left: 4px solid #667eea;
+    }
+    .step h3 {
+      color: #667eea;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .step-number {
+      background: #667eea;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .step ol {
+      margin-left: 20px;
+      color: #555;
+    }
+    .step li {
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+    .code-box {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      margin: 12px 0;
+      overflow-x: auto;
+      position: relative;
+    }
+    .code-box button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .code-box button:hover {
+      background: #5568d3;
+    }
+    .alert {
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+    .alert-info {
+      background: #cfe2ff;
+      border-left: 4px solid #0d6efd;
+      color: #084298;
+    }
+    .alert-warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      color: #856404;
+    }
+    .alert-success {
+      background: #d1e7dd;
+      border-left: 4px solid #198754;
+      color: #0f5132;
+    }
+    .alert strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .checklist {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .checklist-item {
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 6px;
+      transition: all 0.3s;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .checklist-item:hover {
+      background: #f8f9fa;
+    }
+    .checklist-item.completed {
+      background: #d1e7dd;
+      border-left: 4px solid #198754;
+    }
+    .checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .checklist-item.completed .checkbox {
+      background: #198754;
+      border-color: #198754;
+      color: white;
+    }
+    .config-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    .config-table th,
+    .config-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .config-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .config-table td code {
+      background: #f8f9fa;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #667eea;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🚀 Panduan Setup Sistem Tugas Voice</h1>
+    <p>Ikuti langkah-langkah berikut untuk mengaktifkan aplikasi</p>
+  </div>
+
+  <div class="content">
+    
+    <!-- OVERVIEW -->
+    <div class="section">
+      <h2>📋 Yang Anda Perlukan</h2>
+      <div class="config-table">
+        <table class="config-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Deskripsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Google Account</strong></td>
+              <td>Untuk Google Apps Script dan Drive</td>
+            </tr>
+            <tr>
+              <td><strong>5 File HTML</strong></td>
+              <td><code>murid.html</code>, <code>guru.html</code>, <code>setup.html</code>, <code>manifest.json</code>, <code>service-worker.js</code></td>
+            </tr>
+            <tr>
+              <td><strong>Google Apps Script</strong></td>
+              <td>Backend untuk menyimpan data</td>
+            </tr>
+            <tr>
+              <td><strong>Web Hosting</strong></td>
+              <td>GitHub Pages, Netlify, atau web server</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="section">
+      <h2>Langkah 1: Setup Google Apps Script</h2>
+      
+      <div class="step">
+        <h3>
+          <span class="step-number">1</span>
+          Buat Project Apps Script
+        </h3>
+        <ol>
+          <li>Buka <a href="https://script.google.com" target="_blank">script.google.com</a></li>
+          <li>Klik <strong>"New Project"</strong></li>
+          <li>Ganti nama project menjadi <strong>"Sistem Tugas Voice"</strong></li>
+          <li>Hapus kode default dan paste kode dari file <code>Google Apps Script - Updated Version</code></li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h3>
+          <span class="step-number">2</span>
+          Jalankan Fungsi Setup
+        </h3>
+        <ol>
+          <li>Di Apps Script editor, pilih fungsi <code>setup</code> dari dropdown</li>
+          <li>Klik tombol <strong>Run</strong> (▶️)</li>
+          <li>Saat diminta permission, klik <strong>"Review Permissions"</strong></li>
+          <li>Pilih akun Google Anda → <strong>"Advanced"</strong> → <strong>"Go to [Project Name] (unsafe)"</strong></li>
+          <li>Klik <strong>"Allow"</strong></li>
+          <li>Tunggu sampai selesai (cek di Execution Log)</li>
+        </ol>
+        
+        <div class="alert alert-info">
+          <strong>📝 Catat Info Berikut:</strong>
+          Setelah setup berhasil, Apps Script akan menampilkan:
+          <ul style="margin-top: 8px;">
+            <li><strong>Spreadsheet ID</strong> - Copy dan simpan</li>
+            <li><strong>Spreadsheet URL</strong> - Buka untuk melihat database</li>
+            <li><strong>Folder URL</strong> - Folder untuk audio files</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>
+          <span class="step-number">3</span>
+          Update Spreadsheet ID
+        </h3>
+        <ol>
+          <li>Copy <strong>Spreadsheet ID</strong> dari execution log</li>
+          <li>Di Apps Script editor, cari baris <code>SPREADSHEET_ID: ''</code></li>
+          <li>Paste ID di antara tanda petik: <code>SPREADSHEET_ID: 'YOUR_ID_HERE'</code></li>
+          <li>Klik <strong>Save</strong> (Ctrl+S)</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h3>
+          <span class="step-number">4</span>
+          Deploy sebagai Web App
+        </h3>
+        <ol>
+          <li>Klik tombol <strong>"Deploy"</strong> → <strong>"New deployment"</strong></li>
+          <li>Klik icon ⚙️ → Pilih <strong>"Web app"</strong></li>
+          <li>Isi form:
+            <ul>
+              <li><strong>Description:</strong> Production</li>
+              <li><strong>Execute as:</strong> Me</li>
+              <li><strong>Who has access:</strong> Anyone</li>
+            </ul>
+          </li>
+          <li>Klik <strong>"Deploy"</strong></li>
+          <li>Copy <strong>Web app URL</strong> yang muncul</li>
+        </ol>
+        
+        <div class="alert alert-warning">
+          <strong>⚠️ Penting:</strong>
+          Web app URL berbentuk: <code>https://script.google.com/macros/s/ABC.../exec</code>
+          <br>Simpan URL ini, akan digunakan di langkah selanjutnya.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="section">
+      <h2>Langkah 2: Konfigurasi HTML Files</h2>
+      
+      <div class="step">
+        <h3>
+          <span class="step-number">5</span>
+          Update Config di murid.html
+        </h3>
+        <ol>
+          <li>Buka file <code>murid.html</code></li>
+          <li>Cari baris: <code>APPS_SCRIPT_URL: 'https://script.google.com/...'</code></li>
+          <li>Ganti dengan Web app URL yang baru Anda copy</li>
+          <li>Simpan file</li>
+        </ol>
+        
+        <div class="code-box">
+const CONFIG = {
+  APPS_SCRIPT_URL: 'PASTE_URL_ANDA_DI_SINI',
+  CLASS_CODES: {
+    '7A': 'KELAS7A2024',
+    // ... dst
+  }
+};
+          <button onclick="copyCode(this)">Copy</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>
+          <span class="step-number">6</span>
+          Update Config di guru.html
+        </h3>
+        <ol>
+          <li>Buka file <code>guru.html</code></li>
+          <li>Cari baris: <code>APPS_SCRIPT_URL: 'https://script.google.com/...'</code></li>
+          <li>Ganti dengan Web app URL yang sama</li>
+          <li>Opsional: Ganti <code>GURU_PASSWORD</code> dengan password Anda sendiri</li>
+          <li>Simpan file</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h3>
+          <span class="step-number">7</span>
+          Customize Kode Akses Kelas
+        </h3>
+        <ol>
+          <li>Di <code>murid.html</code>, edit object <code>CLASS_CODES</code></li>
+          <li>Ganti kode default dengan kode yang Anda inginkan</li>
+          <li>Berikan kode ini kepada murid di setiap kelas</li>
+        </ol>
+        
+        <div class="alert alert-info">
+          <strong>💡 Tip Keamanan:</strong>
+          Gunakan kode yang unik dan kompleks, misalnya:
+          <br><code>'7A': 'MTK7A_2024_UNIK123'</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="section">
+      <h2>Langkah 3: Upload ke Web Hosting</h2>
+      
+      <div class="step">
+        <h3>
+          <span class="step-number">8</span>
+          Pilih Hosting Platform
+        </h3>
+        <p><strong>Pilihan A: GitHub Pages (Gratis, Recommended)</strong></p>
+        <ol>
+          <li>Buat repository baru di GitHub</li>
+          <li>Upload 5 files: <code>murid.html</code>, <code>guru.html</code>, <code>setup.html</code>, <code>manifest.json</code>, <code>service-worker.js</code></li>
+          <li>Rename <code>murid.html</code> menjadi <code>index.html</code></li>
+          <li>Settings → Pages → Source: main branch</li>
+          <li>URL akan jadi: <code>https://username.github.io/repo-name/</code></li>
+        </ol>
+        
+        <p style="margin-top: 16px;"><strong>Pilihan B: Netlify/Vercel (Gratis)</strong></p>
+        <ol>
+          <li>Drag & drop folder ke Netlify/Vercel</li>
+          <li>Otomatis deploy dengan custom domain</li>
+        </ol>
+        
+        <p style="margin-top: 16px;"><strong>Pilihan C: Web Server Sendiri</strong></p>
+        <ol>
+          <li>Upload files ke public_html atau www folder</li>
+          <li>Pastikan HTTPS aktif</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="section">
+      <h2>Langkah 4: Testing</h2>
+      
+      <div class="step">
+        <h3>
+          <span class="step-number">9</span>
+          Test Aplikasi Murid
+        </h3>
+        <ol>
+          <li>Buka <code>murid.html</code> di browser</li>
+          <li>Login dengan salah satu kode kelas</li>
+          <li>Isi form dan rekam audio</li>
+          <li>Klik "Kirim ke Guru"</li>
+          <li>Cek Google Spreadsheet, data harus masuk</li>
+          <li>Cek Google Drive, file audio harus tersimpan</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h3>
+          <span class="step-number">10</span>
+          Test Dashboard Guru
+        </h3>
+        <ol>
+          <li>Buka <code>guru.html</code> di browser</li>
+          <li>Login dengan password yang sudah dikonfigurasi</li>
+          <li>Data submission dari murid harus muncul</li>
+          <li>Test audio player</li>
+          <li>Coba beri nilai dan feedback</li>
+          <li>Cek spreadsheet, nilai harus ter-update</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div class="section">
+      <h2>✅ Checklist Setup</h2>
+      <div class="checklist">
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Google Apps Script dibuat dan code dipaste</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Fungsi <code>setup()</code> berhasil dijalankan</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Spreadsheet ID di-copy dan dipaste ke script</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Apps Script di-deploy sebagai Web App</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Web App URL di-copy</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Config di <code>murid.html</code> sudah diupdate</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Config di <code>guru.html</code> sudah diupdate</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Kode akses kelas sudah dikustomisasi</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Files di-upload ke web hosting</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Testing murid berhasil</div>
+        </div>
+        <div class="checklist-item" onclick="toggleCheck(this)">
+          <div class="checkbox">✓</div>
+          <div>Testing guru berhasil</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSWORD DEFAULTS -->
+    <div class="section">
+      <h2>🔑 Default Password & Kode Akses</h2>
+      
+      <table class="config-table">
+        <thead>
+          <tr>
+            <th>Tipe</th>
+            <th>Username/Kelas</th>
+            <th>Password/Kode</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Guru</strong></td>
+            <td>Nama bebas</td>
+            <td><code>guru123</code></td>
+          </tr>
+          <tr>
+            <td><strong>Murid 7A</strong></td>
+            <td>Kelas 7A</td>
+            <td><code>KELAS7A2024</code></td>
+          </tr>
+          <tr>
+            <td><strong>Murid 7B</strong></td>
+            <td>Kelas 7B</td>
+            <td><code>KELAS7B2024</code></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="text-align: center; font-style: italic;">... dan seterusnya untuk kelas lainnya</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div class="alert alert-warning">
+        <strong>⚠️ PENTING:</strong>
+        Ganti semua password dan kode default ini sebelum production!
+      </div>
+    </div>
+
+    <!-- TROUBLESHOOTING -->
+    <div class="section">
+      <h2>🔧 Troubleshooting</h2>
+      
+      <div class="step">
+        <h3>❌ Error: "Sheet tidak ditemukan"</h3>
+        <p><strong>Solusi:</strong></p>
+        <ul>
+          <li>Pastikan fungsi <code>setup()</code> sudah dijalankan</li>
+          <li>Cek apakah Spreadsheet ID sudah benar di Apps Script</li>
+          <li>Jalankan fungsi <code>testConfig()</code> untuk validasi</li>
+        </ul>
+      </div>
+      
+      <div class="step">
+        <h3>❌ Submission tidak masuk ke Spreadsheet</h3>
+        <p><strong>Solusi:</strong></p>
+        <ul>
+          <li>Cek Console browser (F12) untuk error messages</li>
+          <li>Pastikan Web App URL benar di HTML files</li>
+          <li>Pastikan Apps Script di-deploy dengan "Who has access: Anyone"</li>
+          <li>Cek Execution log di Apps Script untuk error</li>
+        </ul>
+      </div>
+      
+      <div class="step">
+        <h3>❌ Audio tidak ter-upload</h3>
+        <p><strong>Solusi:</strong></p>
+        <ul>
+          <li>Cek ukuran file, max 10MB</li>
+          <li>Pastikan permission Google Drive sudah di-grant</li>
+          <li>Cek apakah folder "Rekaman Tugas Voice" ada di Drive</li>
+        </ul>
+      </div>
+      
+      <div class="step">
+        <h3>❌ Dashboard guru tidak load data</h3>
+        <p><strong>Solusi:</strong></p>
+        <ul>
+          <li>Buka Apps Script URL langsung: <code>YOUR_URL?action=getSubmissions</code></li>
+          <li>Harus return JSON dengan data submissions</li>
+          <li>Jika error 403, cek deployment permissions</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- NEXT STEPS -->
+    <div class="section">
+      <h2>🎯 Langkah Selanjutnya</h2>
+      
+      <div class="alert alert-success">
+        <strong>✅ Setup Selesai!</strong>
+        Aplikasi Anda siap digunakan. Berikut langkah selanjutnya:
+      </div>
+      
+      <ol style="line-height: 2;">
+        <li><strong>Bagikan link murid.html</strong> kepada siswa</li>
+        <li><strong>Berikan kode akses</strong> per kelas kepada siswa</li>
+        <li><strong>Bagikan link guru.html</strong> kepada guru (jangan dibagikan ke siswa!)</li>
+        <li><strong>Berikan password guru</strong> hanya kepada guru yang berwenang</li>
+        <li><strong>Monitor</strong> Google Spreadsheet untuk tracking submissions</li>
+      </ol>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="text-align: center; padding: 40px 0; border-top: 2px solid #e0e0e0; margin-top: 40px;">
+      <p style="color: #7f8c8d; margin-bottom: 16px;">
+        Butuh bantuan? Hubungi administrator sistem
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <a href="murid.html" class="btn">Buka Portal Murid</a>
+        <a href="guru.html" class="btn">Buka Portal Guru</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleCheck(element) {
+  element.classList.toggle('completed');
+}
+
+function copyCode(button) {
+  const codeBox = button.parentElement;
+  const code = codeBox.textContent.replace('Copy', '').trim();
+  navigator.clipboard.writeText(code).then(() => {
+    button.textContent = 'Copied!';
+    setTimeout(() => {
+      button.textContent = 'Copy';
+    }, 2000);
+  });
+}
+</script>
+
+</body>
+</html>

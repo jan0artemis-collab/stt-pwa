@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Tugas Voice - Murid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#667eea">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 500px;
+      width: 100%;
+      padding: 32px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      color: #667eea;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #666;
+      font-size: 14px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+    label .required {
+      color: #e74c3c;
+      margin-left: 2px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-record {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-record:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn-stop {
+      background: #e74c3c;
+      color: white;
+    }
+    .btn-stop:hover:not(:disabled) {
+      background: #c0392b;
+      transform: translateY(-2px);
+    }
+    .btn-submit {
+      background: #27ae60;
+      color: white;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: #229954;
+      transform: translateY(-2px);
+    }
+    .btn-logout {
+      background: #95a5a6;
+      color: white;
+      padding: 10px;
+      font-size: 14px;
+    }
+    .status-box {
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      text-align: center;
+      font-weight: 600;
+      animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .status-recording {
+      background: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffc107;
+    }
+    .status-ready {
+      background: #d1e7dd;
+      color: #0f5132;
+      border: 2px solid #198754;
+    }
+    .status-info {
+      background: #cfe2ff;
+      color: #084298;
+      border: 2px solid #0d6efd;
+    }
+    .audio-player {
+      margin: 16px 0;
+      width: 100%;
+      border-radius: 8px;
+      display: none;
+    }
+    .audio-player.show {
+      display: block;
+    }
+    .info-chip {
+      display: inline-block;
+      background: #f0f0f0;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #666;
+      margin-top: 12px;
+    }
+    .timer {
+      font-size: 32px;
+      font-weight: bold;
+      color: #667eea;
+      text-align: center;
+      margin: 16px 0;
+      font-family: 'Courier New', monospace;
+    }
+    .wave-animation {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 40px;
+      margin: 16px 0;
+    }
+    .wave-bar {
+      width: 4px;
+      background: #667eea;
+      border-radius: 4px;
+      animation: wave 1s ease-in-out infinite;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+    @keyframes wave {
+      0%, 100% { height: 10px; }
+      50% { height: 30px; }
+    }
+    .login-container {
+      display: none;
+    }
+    .login-container.active {
+      display: block;
+    }
+    .main-form {
+      display: none;
+    }
+    .main-form.active {
+      display: block;
+    }
+    .user-badge {
+      background: #e8f4f8;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .user-info {
+      font-size: 14px;
+      color: #333;
+    }
+    .user-info strong {
+      color: #667eea;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- LOGIN SECTION -->
+  <div id="loginSection" class="login-container active">
+    <div class="header">
+      <h1>🎤 Portal Murid</h1>
+      <p>Masukkan kode akses kelas Anda</p>
+    </div>
+
+    <div class="form-group">
+      <label for="loginKelas">Pilih Kelas<span class="required">*</span></label>
+      <select id="loginKelas">
+        <option value="">Pilih Kelas</option>
+        <option value="7A">7A</option>
+        <option value="7B">7B</option>
+        <option value="7C">7C</option>
+        <option value="8A">8A</option>
+        <option value="8B">8B</option>
+        <option value="8C">8C</option>
+        <option value="9A">9A</option>
+        <option value="9B">9B</option>
+        <option value="9C">9C</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="loginCode">Kode Akses<span class="required">*</span></label>
+      <input id="loginCode" type="password" placeholder="Masukkan kode dari guru">
+    </div>
+
+    <button onclick="login()" class="btn-submit">🔐 Masuk</button>
+
+    <div style="margin-top: 20px; padding: 12px; background: #fff3cd; border-radius: 8px; font-size: 13px; color: #856404;">
+      💡 <strong>Tip:</strong> Minta kode akses kepada guru mata pelajaran Anda
+    </div>
+  </div>
+
+  <!-- MAIN FORM SECTION -->
+  <div id="mainSection" class="main-form">
+    <div class="header">
+      <h1>🎤 Pengumpulan Tugas Voice</h1>
+      <p>Rekam jawaban Anda dan kirim ke Guru</p>
+    </div>
+
+    <div class="user-badge">
+      <div class="user-info">
+        <strong>Kelas:</strong> <span id="kelasUser"></span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Keluar</button>
+    </div>
+
+    <div class="form-group">
+      <label for="nama">Nama Lengkap<span class="required">*</span></label>
+      <input id="nama" type="text" placeholder="Contoh: Budi Santoso">
+    </div>
+
+    <div class="form-group">
+      <label for="absen">No. Absen<span class="required">*</span></label>
+      <input id="absen" type="number" min="1" max="50" placeholder="1-50">
+    </div>
+
+    <div class="form-group">
+      <label for="mapel">Mata Pelajaran<span class="required">*</span></label>
+      <select id="mapel">
+        <option value="">Pilih Mata Pelajaran</option>
+        <option value="Matematika">Matematika</option>
+        <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+        <option value="Bahasa Inggris">Bahasa Inggris</option>
+        <option value="IPA">IPA</option>
+        <option value="IPS">IPS</option>
+        <option value="PKN">PKN</option>
+        <option value="Agama">Agama</option>
+        <option value="Seni Budaya">Seni Budaya</option>
+        <option value="PJOK">PJOK</option>
+        <option value="Prakarya">Prakarya</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="judul">Judul Tugas<span class="required">*</span></label>
+      <input id="judul" type="text" placeholder="Contoh: Latihan Soal Bab 3">
+    </div>
+
+    <div class="form-group">
+      <label for="catatan">Catatan (opsional)</label>
+      <textarea id="catatan" placeholder="Tambahkan catatan jika ada..."></textarea>
+    </div>
+
+    <div id="statusDiv"></div>
+    <div id="timerDiv"></div>
+    <div id="waveDiv"></div>
+
+    <button id="btnMulai" class="btn-record" onclick="mulaiRekam()">
+      🎙️ Mulai Rekam
+    </button>
+    <button id="btnHenti" class="btn-stop" onclick="hentiRekam()" disabled>
+      ⏹️ Hentikan Rekaman
+    </button>
+
+    <audio id="audioPlayer" class="audio-player" controls></audio>
+
+    <button id="btnKirim" class="btn-submit" onclick="kirimTugas()" disabled>
+      📤 Kirim ke Guru
+    </button>
+
+    <div id="infoDiv"></div>
+  </div>
+</div>
+
+<script>
+// KONFIGURASI - Ganti URL Google Apps Script Anda
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwB6B1D4BBr-0fdqgOq2Ym-rEDQqhNVw165TE6GTrzMMBGgCpq_E4iRG-S5moK_eXOH_w/exec',
+  
+  // Kode akses per kelas (dalam production, simpan di server)
+  CLASS_CODES: {
+    '7A': 'KELAS7A2024',
+    '7B': 'KELAS7B2024',
+    '7C': 'KELAS7C2024',
+    '8A': 'KELAS8A2024',
+    '8B': 'KELAS8B2024',
+    '8C': 'KELAS8C2024',
+    '9A': 'KELAS9A2024',
+    '9B': 'KELAS9B2024',
+    '9C': 'KELAS9C2024'
+  }
+};
+
+// State management (in memory, tidak pakai localStorage)
+let currentUser = {
+  kelas: null,
+  authenticated: false
+};
+
+let mediaRecorder;
+let audioChunks = [];
+let audioBlob = null;
+let timerInterval;
+let recordingSeconds = 0;
+
+// === AUTHENTICATION ===
+function login() {
+  const kelas = document.getElementById('loginKelas').value;
+  const code = document.getElementById('loginCode').value.trim();
+  
+  if (!kelas) {
+    alert('❌ Pilih kelas terlebih dahulu!');
+    return;
+  }
+  
+  if (!code) {
+    alert('❌ Masukkan kode akses!');
+    return;
+  }
+  
+  // Validasi kode
+  if (CONFIG.CLASS_CODES[kelas] === code) {
+    currentUser.kelas = kelas;
+    currentUser.authenticated = true;
+    
+    // Tampilkan form utama
+    document.getElementById('loginSection').classList.remove('active');
+    document.getElementById('mainSection').classList.add('active');
+    document.getElementById('kelasUser').textContent = kelas;
+    
+    // Reset login form
+    document.getElementById('loginCode').value = '';
+  } else {
+    alert('❌ Kode akses salah! Silakan coba lagi atau hubungi guru Anda.');
+  }
+}
+
+function logout() {
+  currentUser = {
+    kelas: null,
+    authenticated: false
+  };
+  
+  // Kembali ke halaman login
+  document.getElementById('mainSection').classList.remove('active');
+  document.getElementById('loginSection').classList.add('active');
+  
+  // Reset form
+  resetForm();
+}
+
+// === RECORDING ===
+async function mulaiRekam() {
+  if (!validateForm()) return;
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    
+    let options = { mimeType: 'audio/webm;codecs=opus' };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options = { mimeType: 'audio/webm' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'audio/mp4' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options = { mimeType: '' };
+        }
+      }
+    }
+    
+    mediaRecorder = new MediaRecorder(stream, options);
+    audioChunks = [];
+    recordingSeconds = 0;
+    
+    mediaRecorder.ondataavailable = event => {
+      audioChunks.push(event.data);
+    };
+    
+    mediaRecorder.onstop = async () => {
+      audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+      
+      const audioURL = URL.createObjectURL(audioBlob);
+      const player = document.getElementById('audioPlayer');
+      player.src = audioURL;
+      player.classList.add('show');
+      
+      const sizeKB = (audioBlob.size / 1024).toFixed(2);
+      const duration = recordingSeconds;
+      document.getElementById('infoDiv').innerHTML = 
+        `<div class="info-chip">📊 Ukuran: ${sizeKB} KB | ⏱️ Durasi: ${duration}s</div>`;
+      
+      document.getElementById('btnKirim').disabled = false;
+      document.getElementById('statusDiv').innerHTML = 
+        '<div class="status-box status-ready">✅ Rekaman siap dikirim!</div>';
+      
+      clearInterval(timerInterval);
+      document.getElementById('timerDiv').innerHTML = '';
+      document.getElementById('waveDiv').innerHTML = '';
+      
+      stream.getTracks().forEach(track => track.stop());
+    };
+    
+    mediaRecorder.start();
+    startTimer();
+    
+    document.getElementById('btnMulai').disabled = true;
+    document.getElementById('btnHenti').disabled = false;
+    document.getElementById('btnKirim').disabled = true;
+    document.getElementById('statusDiv').innerHTML = 
+      '<div class="status-box status-recording">🔴 Sedang merekam...</div>';
+    
+    document.getElementById('waveDiv').innerHTML = `
+      <div class="wave-animation">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    `;
+    
+  } catch (err) {
+    alert('❌ Gagal mengakses mikrofon: ' + err.message);
+  }
+}
+
+function hentiRekam() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    document.getElementById('btnMulai').disabled = false;
+    document.getElementById('btnHenti').disabled = true;
+  }
+}
+
+function startTimer() {
+  recordingSeconds = 0;
+  timerInterval = setInterval(() => {
+    recordingSeconds++;
+    const minutes = Math.floor(recordingSeconds / 60);
+    const seconds = recordingSeconds % 60;
+    document.getElementById('timerDiv').innerHTML = 
+      `<div class="timer">${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}</div>`;
+  }, 1000);
+}
+
+function validateForm() {
+  const nama = document.getElementById('nama').value.trim();
+  const absen = document.getElementById('absen').value;
+  const mapel = document.getElementById('mapel').value;
+  const judul = document.getElementById('judul').value.trim();
+  
+  if (!nama) {
+    alert('❌ Nama lengkap harus diisi!');
+    document.getElementById('nama').focus();
+    return false;
+  }
+  if (!absen || absen < 1) {
+    alert('❌ Nomor absen harus diisi!');
+    document.getElementById('absen').focus();
+    return false;
+  }
+  if (!mapel) {
+    alert('❌ Mata pelajaran harus dipilih!');
+    document.getElementById('mapel').focus();
+    return false;
+  }
+  if (!judul) {
+    alert('❌ Judul tugas harus diisi!');
+    document.getElementById('judul').focus();
+    return false;
+  }
+  
+  return true;
+}
+
+async function kirimTugas() {
+  if (!validateForm()) return;
+  if (!audioBlob) {
+    alert('❌ Belum ada rekaman audio!');
+    return;
+  }
+  
+  document.getElementById('btnKirim').disabled = true;
+  document.getElementById('statusDiv').innerHTML = 
+    '<div class="status-box status-info">⏳ Mengirim tugas ke guru...</div>';
+  
+  try {
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    
+    reader.onloadend = async () => {
+      const base64Audio = reader.result.split(',')[1];
+      
+      const payload = {
+        type: 'submission',
+        nama: document.getElementById('nama').value.trim(),
+        kelas: currentUser.kelas,
+        absen: document.getElementById('absen').value,
+        mapel: document.getElementById('mapel').value,
+        judul: document.getElementById('judul').value.trim(),
+        catatan: document.getElementById('catatan').value.trim(),
+        audio: base64Audio,
+        mimeType: audioBlob.type,
+        ukuran: audioBlob.size,
+        durasi: recordingSeconds,
+        waktu: new Date().toISOString(),
+        status: 'Belum Diperiksa'
+      };
+      
+      const response = await fetch(CONFIG.APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      // Mode no-cors tidak bisa baca response, jadi assume success
+      alert('✅ Tugas berhasil dikirim ke guru!');
+      resetForm();
+      
+    };
+    
+  } catch (err) {
+    alert('❌ Gagal mengirim: ' + err.message);
+    document.getElementById('btnKirim').disabled = false;
+  }
+}
+
+function resetForm() {
+  document.getElementById('nama').value = '';
+  document.getElementById('absen').value = '';
+  document.getElementById('mapel').value = '';
+  document.getElementById('judul').value = '';
+  document.getElementById('catatan').value = '';
+  document.getElementById('audioPlayer').classList.remove('show');
+  document.getElementById('audioPlayer').src = '';
+  document.getElementById('infoDiv').innerHTML = '';
+  document.getElementById('statusDiv').innerHTML = '';
+  document.getElementById('btnKirim').disabled = true;
+  document.getElementById('btnMulai').disabled = false;
+  audioBlob = null;
+}
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+}
+</script>
+
+</body>
+</html>

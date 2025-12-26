@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Guru - Voice Submissions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2c3e50">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #ecf0f1;
+      min-height: 100vh;
+    }
+    
+    /* LOGIN SCREEN */
+    .login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 400px;
+      width: 100%;
+    }
+    .login-box h1 {
+      color: #2c3e50;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .login-box p {
+      color: #7f8c8d;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    /* DASHBOARD */
+    .dashboard {
+      display: none;
+    }
+    .dashboard.active {
+      display: block;
+    }
+    
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: white;
+      padding: 20px 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 24px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .user-info {
+      text-align: right;
+      font-size: 14px;
+    }
+    .btn-logout {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-logout:hover {
+      background: #c0392b;
+    }
+    
+    /* MAIN CONTENT */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    
+    /* FILTER PANEL */
+    .filter-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .filter-group label {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .filter-group select, .filter-group input {
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .filter-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+    
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-left: 4px solid #3498db;
+    }
+    .stat-card h3 {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-bottom: 8px;
+    }
+    .stat-card .number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    .stat-card.pending {
+      border-left-color: #f39c12;
+    }
+    .stat-card.checked {
+      border-left-color: #27ae60;
+    }
+    
+    /* SUBMISSIONS LIST */
+    .submissions-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .submissions-header {
+      padding: 20px;
+      background: #34495e;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .submission-item {
+      border-bottom: 1px solid #ecf0f1;
+      padding: 20px;
+      transition: background 0.2s;
+    }
+    .submission-item:hover {
+      background: #f8f9fa;
+    }
+    .submission-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .submission-info h4 {
+      color: #2c3e50;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    .submission-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: #7f8c8d;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-checked {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+    .submission-content {
+      margin: 16px 0;
+    }
+    .audio-section {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 12px 0;
+    }
+    .audio-section audio {
+      width: 100%;
+      margin-top: 8px;
+    }
+    .catatan-box {
+      background: #e8f4f8;
+      padding: 12px;
+      border-radius: 6px;
+      border-left: 3px solid #3498db;
+      margin: 12px 0;
+      font-size: 14px;
+      color: #2c3e50;
+    }
+    .grading-section {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    .grading-section h5 {
+      color: #2c3e50;
+      margin-bottom: 12px;
+    }
+    .grading-grid {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .grading-grid input, .grading-grid textarea {
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .grading-grid textarea {
+      grid-column: 2;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .btn-save {
+      background: #27ae60;
+      color: white;
+    }
+    .btn-save:hover {
+      background: #229954;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #7f8c8d;
+    }
+    .empty-state img {
+      width: 120px;
+      opacity: 0.5;
+      margin-bottom: 16px;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #7f8c8d;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <h1>👨‍🏫 Portal Guru</h1>
+    <p>Kelola Tugas Voice dari Murid</p>
+    
+    <div class="form-group">
+      <label for="loginNama">Nama Guru</label>
+      <input id="loginNama" type="text" placeholder="Masukkan nama Anda">
+    </div>
+    
+    <div class="form-group">
+      <label for="loginPassword">Password</label>
+      <input id="loginPassword" type="password" placeholder="Masukkan password">
+    </div>
+    
+    <button class="btn btn-primary" style="width: 100%;" onclick="loginGuru()">
+      🔐 Masuk
+    </button>
+    
+    <div style="margin-top: 20px; padding: 12px; background: #e8f4f8; border-radius: 8px; font-size: 13px; color: #2c3e50;">
+      💡 <strong>Demo Password:</strong> guru123
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-content">
+      <h1>📊 Dashboard Tugas Voice</h1>
+      <div class="header-right">
+        <div class="user-info">
+          <div style="font-weight: 600;">👨‍🏫 <span id="guruName"></span></div>
+          <div style="font-size: 12px; opacity: 0.8;">Guru</div>
+        </div>
+        <button class="btn-logout" onclick="logoutGuru()">Keluar</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Tugas</h3>
+        <div class="number" id="statTotal">0</div>
+      </div>
+      <div class="stat-card pending">
+        <h3>Belum Diperiksa</h3>
+        <div class="number" id="statPending">0</div>
+      </div>
+      <div class="stat-card checked">
+        <h3>Sudah Diperiksa</h3>
+        <div class="number" id="statChecked">0</div>
+      </div>
+    </div>
+    
+    <!-- FILTER PANEL -->
+    <div class="filter-panel">
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label>Kelas</label>
+          <select id="filterKelas">
+            <option value="">Semua Kelas</option>
+            <option value="7A">7A</option>
+            <option value="7B">7B</option>
+            <option value="7C">7C</option>
+            <option value="8A">8A</option>
+            <option value="8B">8B</option>
+            <option value="8C">8C</option>
+            <option value="9A">9A</option>
+            <option value="9B">9B</option>
+            <option value="9C">9C</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Mata Pelajaran</label>
+          <select id="filterMapel">
+            <option value="">Semua Mapel</option>
+            <option value="Matematika">Matematika</option>
+            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+            <option value="Bahasa Inggris">Bahasa Inggris</option>
+            <option value="IPA">IPA</option>
+            <option value="IPS">IPS</option>
+            <option value="PKN">PKN</option>
+            <option value="Agama">Agama</option>
+            <option value="Seni Budaya">Seni Budaya</option>
+            <option value="PJOK">PJOK</option>
+            <option value="Prakarya">Prakarya</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Status</label>
+          <select id="filterStatus">
+            <option value="">Semua Status</option>
+            <option value="Belum Diperiksa">Belum Diperiksa</option>
+            <option value="Sudah Diperiksa">Sudah Diperiksa</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Cari Nama</label>
+          <input id="filterNama" type="text" placeholder="Nama murid...">
+        </div>
+      </div>
+      
+      <div class="filter-buttons">
+        <button class="btn btn-primary" onclick="applyFilter()">🔍 Terapkan Filter</button>
+        <button class="btn btn-secondary" onclick="resetFilter()">🔄 Reset</button>
+        <button class="btn btn-primary" onclick="loadSubmissions()">↻ Refresh Data</button>
+      </div>
+    </div>
+    
+    <!-- SUBMISSIONS LIST -->
+    <div class="submissions-container">
+      <div class="submissions-header">
+        📝 Daftar Tugas Masuk
+      </div>
+      <div id="submissionsList">
+        <div class="loading">⏳ Memuat data...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// KONFIGURASI
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwB6B1D4BBr-0fdqgOq2Ym-rEDQqhNVw165TE6GTrzMMBGgCpq_E4iRG-S5moK_eXOH_w/exec',
+  GURU_PASSWORD: 'guru123' // Dalam production, gunakan auth yang lebih aman
+};
+
+// State (in memory)
+let currentGuru = {
+  nama: null,
+  authenticated: false
+};
+
+let allSubmissions = [];
+let filteredSubmissions = [];
+
+// === AUTHENTICATION ===
+function loginGuru() {
+  const nama = document.getElementById('loginNama').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  
+  if (!nama) {
+    alert('❌ Masukkan nama Anda!');
+    return;
+  }
+  
+  if (password !== CONFIG.GURU_PASSWORD) {
+    alert('❌ Password salah!');
+    return;
+  }
+  
+  currentGuru.nama = nama;
+  currentGuru.authenticated = true;
+  
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').classList.add('active');
+  document.getElementById('guruName').textContent = nama;
+  
+  // Load data
+  loadSubmissions();
+}
+
+function logoutGuru() {
+  currentGuru = {
+    nama: null,
+    authenticated: false
+  };
+  
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginNama').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+
+// === LOAD DATA ===
+async function loadSubmissions() {
+  document.getElementById('submissionsList').innerHTML = '<div class="loading">⏳ Memuat data...</div>';
+  
+  try {
+    const response = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=getSubmissions');
+    const data = await response.json();
+    
+    if (data.success) {
+      allSubmissions = data.submissions || [];
+      filteredSubmissions = [...allSubmissions];
+      renderSubmissions();
+      updateStats();
+    } else {
+      throw new Error(data.message || 'Gagal memuat data');
+    }
+  } catch (error) {
+    document.getElementById('submissionsList').innerHTML = 
+      `<div class="empty-state">
+        <div style="font-size: 48px;">❌</div>
+        <h3>Gagal Memuat Data</h3>
+        <p>${error.message}</p>
+        <p style="font-size: 13px; margin-top: 12px;">Pastikan Google Apps Script sudah dikonfigurasi dengan benar</p>
+      </div>`;
+  }
+}
+
+// === RENDER ===
+function renderSubmissions() {
+  const container = document.getElementById('submissionsList');
+  
+  if (filteredSubmissions.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div style="font-size: 48px;">📭</div>
+        <h3>Belum Ada Tugas</h3>
+        <p>Belum ada murid yang mengumpulkan tugas</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Sort by waktu (newest first)
+  filteredSubmissions.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+  
+  container.innerHTML = filteredSubmissions.map((sub, index) => `
+    <div class="submission-item">
+      <div class="submission-header">
+        <div class="submission-info">
+          <h4>${sub.nama} (${sub.kelas} - Absen ${sub.absen})</h4>
+          <div class="submission-meta">
+            <div class="meta-item">📚 ${sub.mapel}</div>
+            <div class="meta-item">📝 ${sub.judul}</div>
+            <div class="meta-item">📅 ${formatDate(sub.waktu)}</div>
+            <div class="meta-item">⏱️ ${sub.durasi}s</div>
+            <div class="meta-item">💾 ${(sub.ukuran / 1024).toFixed(2)} KB</div>
+          </div>
+        </div>
+        <span class="status-badge ${sub.status === 'Belum Diperiksa' ? 'status-pending' : 'status-checked'}">
+          ${sub.status}
+        </span>
+      </div>
+      
+      ${sub.catatan ? `
+        <div class="catatan-box">
+          <strong>📌 Catatan Murid:</strong> ${sub.catatan}
+        </div>
+      ` : ''}
+      
+      <div class="audio-section">
+        <strong>🎵 Rekaman Audio:</strong>
+        <audio controls src="${sub.audioUrl || '#'}" preload="metadata"></audio>
+      </div>
+      
+      <div class="grading-section">
+        <h5>✍️ Penilaian</h5>
+        <div class="grading-grid">
+          <label style="padding: 10px 0;">Nilai:</label>
+          <input type="number" id="nilai_${index}" min="0" max="100" placeholder="0-100" value="${sub.nilai || ''}">
+          
+          <label style="padding: 10px 0;">Feedback:</label>
+          <textarea id="feedback_${index}" placeholder="Tulis feedback untuk murid...">${sub.feedback || ''}</textarea>
+        </div>
+        <button class="btn btn-save" onclick="saveGrade(${index})">
+          💾 Simpan Penilaian
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateStats() {
+  const total = allSubmissions.length;
+  const pending = allSubmissions.filter(s => s.status === 'Belum Diperiksa').length;
+  const checked = allSubmissions.filter(s => s.status === 'Sudah Diperiksa').length;
+  
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statChecked').textContent = checked;
+}
+
+// === FILTER ===
+function applyFilter() {
+  const kelas = document.getElementById('filterKelas').value;
+  const mapel = document.getElementById('filterMapel').value;
+  const status = document.getElementById('filterStatus').value;
+  const nama = document.getElementById('filterNama').value.toLowerCase();
+  
+  filteredSubmissions = allSubmissions.filter(sub => {
+    if (kelas && sub.kelas !== kelas) return false;
+    if (mapel && sub.mapel !== mapel) return false;
+    if (status && sub.status !== status) return false;
+    if (nama && !sub.nama.toLowerCase().includes(nama)) return false;
+    return true;
+  });
+  
+  renderSubmissions();
+}
+
+function resetFilter() {
+  document.getElementById('filterKelas').value = '';
+  document.getElementById('filterMapel').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterNama').value = '';
+  
+  filteredSubmissions = [...allSubmissions];
+  renderSubmissions();
+}
+
+// === SAVE GRADE ===
+async function saveGrade(index) {
+  const submission = filteredSubmissions[index];
+  const nilai = document.getElementById(`nilai_${index}`).value;
+  const feedback = document.getElementById(`feedback_${index}`).value.trim();
+  
+  if (!nilai) {
+    alert('❌ Masukkan nilai terlebih dahulu!');
+    return;
+  }
+  
+  if (nilai < 0 || nilai > 100) {
+    alert('❌ Nilai harus antara 0-100!');
+    return;
+  }
+  
+  try {
+    const payload = {
+      type: 'grading',
+      submissionId: submission.id,
+      rowIndex: submission.rowIndex,
+      nilai: nilai,
+      feedback: feedback,
+      guru: currentGuru.nama,
+      waktuPenilaian: new Date().toISOString()
+    };
+    
+    const response = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    alert('✅ Penilaian berhasil disimpan!');
+    
+    // Update local data
+    submission.nilai = nilai;
+    submission.feedback = feedback;
+    submission.status = 'Sudah Diperiksa';
+    
+    // Refresh display
+    renderSubmissions();
+    updateStats();
+    
+  } catch (error) {
+    alert('❌ Gagal menyimpan: ' + error.message);
+  }
+}
+
+// === UTILITIES ===
+function formatDate(isoString) {
+  const date = new Date(isoString);
+  const options = { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  };
+  return date.toLocaleDateString('id-ID', options);
+}
+</script>
+
+</body>
+</html>

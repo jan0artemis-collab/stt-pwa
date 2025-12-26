@@ -1,0 +1,460 @@
+/**
+ * Google Apps Script untuk Sistem Tugas Voice
+ * Mendukung: Submission Murid + Dashboard Guru
+ * 
+ * CARA SETUP:
+ * 1. Buka Google Apps Script (script.google.com)
+ * 2. Paste code ini
+ * 3. Jalankan fungsi setup() untuk membuat spreadsheet dan folder
+ * 4. Deploy sebagai Web App (Execute as: Me, Access: Anyone)
+ * 5. Copy URL deployment ke CONFIG di HTML
+ */
+
+// ============= KONFIGURASI =============
+const CONFIG = {
+  SPREADSHEET_ID: '', // Akan diisi otomatis oleh setup()
+  SHEET_SUBMISSIONS: 'Submissions',
+  FOLDER_NAME: 'Rekaman Tugas Voice',
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+};
+
+// ============= SETUP FUNCTION =============
+function setup() {
+  try {
+    Logger.log('🚀 Memulai setup...');
+    
+    // Buat spreadsheet baru
+    const ss = SpreadsheetApp.create('Database Tugas Voice');
+    const spreadsheetId = ss.getId();
+    
+    Logger.log('✅ Spreadsheet dibuat: ' + spreadsheetId);
+    Logger.log('📋 URL: ' + ss.getUrl());
+    
+    // Buat sheet submissions
+    const sheet = ss.getActiveSheet();
+    sheet.setName(CONFIG.SHEET_SUBMISSIONS);
+    
+    // Setup header
+    const headers = [
+      'ID',
+      'Timestamp',
+      'Nama Murid',
+      'Kelas',
+      'No. Absen',
+      'Mata Pelajaran',
+      'Judul Tugas',
+      'Catatan Murid',
+      'Link Audio',
+      'Durasi (detik)',
+      'Ukuran (KB)',
+      'Format',
+      'Status',
+      'Nilai',
+      'Feedback Guru',
+      'Nama Guru',
+      'Waktu Penilaian'
+    ];
+    
+    sheet.appendRow(headers);
+    
+    // Format header
+    const headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setFontWeight('bold');
+    headerRange.setBackground('#2c3e50');
+    headerRange.setFontColor('#ffffff');
+    headerRange.setHorizontalAlignment('center');
+    
+    // Set column widths
+    sheet.setColumnWidth(1, 100);  // ID
+    sheet.setColumnWidth(2, 150);  // Timestamp
+    sheet.setColumnWidth(3, 150);  // Nama
+    sheet.setColumnWidth(4, 80);   // Kelas
+    sheet.setColumnWidth(5, 80);   // Absen
+    sheet.setColumnWidth(6, 120);  // Mapel
+    sheet.setColumnWidth(7, 200);  // Judul
+    sheet.setColumnWidth(8, 200);  // Catatan
+    sheet.setColumnWidth(9, 300);  // Link Audio
+    sheet.setColumnWidth(10, 100); // Durasi
+    sheet.setColumnWidth(11, 100); // Ukuran
+    sheet.setColumnWidth(12, 100); // Format
+    sheet.setColumnWidth(13, 120); // Status
+    sheet.setColumnWidth(14, 80);  // Nilai
+    sheet.setColumnWidth(15, 250); // Feedback
+    sheet.setColumnWidth(16, 120); // Guru
+    sheet.setColumnWidth(17, 150); // Waktu Penilaian
+    
+    // Freeze header row
+    sheet.setFrozenRows(1);
+    
+    // Buat folder untuk audio
+    const folder = DriveApp.createFolder(CONFIG.FOLDER_NAME);
+    
+    Logger.log('✅ Folder dibuat: ' + folder.getName());
+    Logger.log('📁 URL: ' + folder.getUrl());
+    
+    Logger.log('');
+    Logger.log('=== SETUP SELESAI ===');
+    Logger.log('');
+    Logger.log('📝 LANGKAH SELANJUTNYA:');
+    Logger.log('1. Copy Spreadsheet ID ini: ' + spreadsheetId);
+    Logger.log('2. Paste ke CONFIG.SPREADSHEET_ID di code ini');
+    Logger.log('3. Deploy sebagai Web App:');
+    Logger.log('   - Execute as: Me');
+    Logger.log('   - Who has access: Anyone');
+    Logger.log('4. Copy URL deployment ke file HTML');
+    Logger.log('');
+    
+    return {
+      success: true,
+      spreadsheetId: spreadsheetId,
+      spreadsheetUrl: ss.getUrl(),
+      folderUrl: folder.getUrl()
+    };
+    
+  } catch (error) {
+    Logger.log('❌ Setup gagal: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+// ============= MAIN ENDPOINTS =============
+
+/**
+ * Handle POST requests (Submissions & Grading)
+ */
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    
+    if (data.type === 'submission') {
+      return handleSubmission(data);
+    } else if (data.type === 'grading') {
+      return handleGrading(data);
+    } else {
+      return createResponse(false, 'Invalid request type');
+    }
+    
+  } catch (error) {
+    Logger.log('Error in doPost: ' + error.toString());
+    return createResponse(false, 'Error: ' + error.message);
+  }
+}
+
+/**
+ * Handle GET requests (Fetch data for guru)
+ */
+function doGet(e) {
+  try {
+    const action = e.parameter.action;
+    
+    if (action === 'getSubmissions') {
+      return getSubmissions();
+    } else {
+      return createResponse(false, 'Invalid action');
+    }
+    
+  } catch (error) {
+    Logger.log('Error in doGet: ' + error.toString());
+    return createResponse(false, 'Error: ' + error.message);
+  }
+}
+
+// ============= HANDLE SUBMISSION =============
+function handleSubmission(data) {
+  try {
+    // Validasi
+    if (!data.nama || !data.kelas || !data.audio) {
+      return createResponse(false, 'Data tidak lengkap');
+    }
+    
+    if (data.ukuran > CONFIG.MAX_FILE_SIZE) {
+      return createResponse(false, 'File terlalu besar (max 10MB)');
+    }
+    
+    // Simpan audio ke Drive
+    const audioUrl = saveAudioToDrive(data);
+    
+    // Simpan metadata ke Spreadsheet
+    const submissionId = saveSubmission(data, audioUrl);
+    
+    return createResponse(true, 'Tugas berhasil dikirim!', {
+      id: submissionId,
+      audioUrl: audioUrl
+    });
+    
+  } catch (error) {
+    Logger.log('Error in handleSubmission: ' + error.toString());
+    return createResponse(false, 'Gagal menyimpan: ' + error.message);
+  }
+}
+
+// ============= SAVE AUDIO TO DRIVE =============
+function saveAudioToDrive(data) {
+  try {
+    // Decode base64
+    const audioBlob = Utilities.newBlob(
+      Utilities.base64Decode(data.audio),
+      data.mimeType || 'audio/webm'
+    );
+    
+    // Generate filename
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const extension = getFileExtension(data.mimeType);
+    const filename = `${sanitize(data.nama)}_${data.kelas}_${sanitize(data.judul)}_${timestamp}.${extension}`;
+    
+    audioBlob.setName(filename);
+    
+    // Get folder
+    const folder = getOrCreateFolder(CONFIG.FOLDER_NAME);
+    
+    // Save file
+    const file = folder.createFile(audioBlob);
+    file.setDescription(`Tugas: ${data.judul} | Murid: ${data.nama} | Kelas: ${data.kelas}`);
+    
+    // Set sharing
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    Logger.log('Audio saved: ' + filename);
+    
+    return file.getUrl();
+    
+  } catch (error) {
+    throw new Error('Gagal menyimpan audio: ' + error.message);
+  }
+}
+
+// ============= SAVE SUBMISSION TO SHEET =============
+function saveSubmission(data, audioUrl) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID || SpreadsheetApp.getActiveSpreadsheet().getId());
+    const sheet = ss.getSheetByName(CONFIG.SHEET_SUBMISSIONS);
+    
+    if (!sheet) {
+      throw new Error('Sheet tidak ditemukan. Jalankan setup() terlebih dahulu.');
+    }
+    
+    // Generate ID
+    const lastRow = sheet.getLastRow();
+    const submissionId = 'SUB' + String(lastRow).padStart(5, '0');
+    
+    // Format timestamp
+    const timestamp = Utilities.formatDate(
+      new Date(data.waktu),
+      'Asia/Jakarta',
+      'dd/MM/yyyy HH:mm:ss'
+    );
+    
+    // Prepare row data
+    const rowData = [
+      submissionId,
+      timestamp,
+      data.nama,
+      data.kelas,
+      data.absen,
+      data.mapel,
+      data.judul,
+      data.catatan || '',
+      audioUrl,
+      data.durasi || 0,
+      (data.ukuran / 1024).toFixed(2),
+      data.mimeType || 'audio/webm',
+      data.status || 'Belum Diperiksa',
+      '', // Nilai (kosong)
+      '', // Feedback (kosong)
+      '', // Guru (kosong)
+      ''  // Waktu Penilaian (kosong)
+    ];
+    
+    // Append row
+    sheet.appendRow(rowData);
+    
+    // Format new row
+    const newRow = sheet.getLastRow();
+    const range = sheet.getRange(newRow, 1, 1, rowData.length);
+    
+    // Alternate row color
+    if (newRow % 2 === 0) {
+      range.setBackground('#f8f9fa');
+    }
+    
+    // Status cell color
+    const statusCell = sheet.getRange(newRow, 13);
+    statusCell.setBackground('#fff3cd');
+    statusCell.setFontColor('#856404');
+    statusCell.setFontWeight('bold');
+    
+    Logger.log('Submission saved: ' + submissionId);
+    
+    return submissionId;
+    
+  } catch (error) {
+    throw new Error('Gagal menyimpan ke sheet: ' + error.message);
+  }
+}
+
+// ============= GET SUBMISSIONS (for Guru) =============
+function getSubmissions() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID || SpreadsheetApp.getActiveSpreadsheet().getId());
+    const sheet = ss.getSheetByName(CONFIG.SHEET_SUBMISSIONS);
+    
+    if (!sheet) {
+      throw new Error('Sheet tidak ditemukan');
+    }
+    
+    const lastRow = sheet.getLastRow();
+    
+    if (lastRow <= 1) {
+      // No data yet
+      return createResponse(true, 'Belum ada data', { submissions: [] });
+    }
+    
+    // Get all data (skip header)
+    const data = sheet.getRange(2, 1, lastRow - 1, 17).getValues();
+    
+    // Convert to objects
+    const submissions = data.map((row, index) => ({
+      id: row[0],
+      waktu: row[1],
+      nama: row[2],
+      kelas: row[3],
+      absen: row[4],
+      mapel: row[5],
+      judul: row[6],
+      catatan: row[7],
+      audioUrl: row[8],
+      durasi: row[9],
+      ukuran: parseFloat(row[10]) * 1024, // Convert back to bytes
+      format: row[11],
+      status: row[12] || 'Belum Diperiksa',
+      nilai: row[13],
+      feedback: row[14],
+      guru: row[15],
+      waktuPenilaian: row[16],
+      rowIndex: index + 2 // Actual row in sheet (1-indexed + header)
+    }));
+    
+    return createResponse(true, 'Data berhasil dimuat', { submissions: submissions });
+    
+  } catch (error) {
+    Logger.log('Error in getSubmissions: ' + error.toString());
+    return createResponse(false, 'Gagal memuat data: ' + error.message);
+  }
+}
+
+// ============= HANDLE GRADING =============
+function handleGrading(data) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID || SpreadsheetApp.getActiveSpreadsheet().getId());
+    const sheet = ss.getSheetByName(CONFIG.SHEET_SUBMISSIONS);
+    
+    if (!sheet) {
+      throw new Error('Sheet tidak ditemukan');
+    }
+    
+    const row = data.rowIndex;
+    
+    // Update nilai (column 14)
+    sheet.getRange(row, 14).setValue(data.nilai);
+    
+    // Update feedback (column 15)
+    sheet.getRange(row, 15).setValue(data.feedback || '');
+    
+    // Update guru (column 16)
+    sheet.getRange(row, 16).setValue(data.guru || '');
+    
+    // Update waktu penilaian (column 17)
+    const waktuPenilaian = Utilities.formatDate(
+      new Date(data.waktuPenilaian),
+      'Asia/Jakarta',
+      'dd/MM/yyyy HH:mm:ss'
+    );
+    sheet.getRange(row, 17).setValue(waktuPenilaian);
+    
+    // Update status (column 13)
+    const statusCell = sheet.getRange(row, 13);
+    statusCell.setValue('Sudah Diperiksa');
+    statusCell.setBackground('#d1e7dd');
+    statusCell.setFontColor('#0f5132');
+    statusCell.setFontWeight('bold');
+    
+    Logger.log('Grading saved for row: ' + row);
+    
+    return createResponse(true, 'Penilaian berhasil disimpan!');
+    
+  } catch (error) {
+    Logger.log('Error in handleGrading: ' + error.toString());
+    return createResponse(false, 'Gagal menyimpan penilaian: ' + error.message);
+  }
+}
+
+// ============= HELPER FUNCTIONS =============
+
+function getOrCreateFolder(folderName) {
+  const folders = DriveApp.getFoldersByName(folderName);
+  return folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+}
+
+function getFileExtension(mimeType) {
+  const extensions = {
+    'audio/webm': 'webm',
+    'audio/webm;codecs=opus': 'webm',
+    'audio/mp4': 'm4a',
+    'audio/mpeg': 'mp3',
+    'audio/ogg': 'ogg',
+    'audio/wav': 'wav'
+  };
+  return extensions[mimeType] || 'webm';
+}
+
+function sanitize(str) {
+  return str.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
+}
+
+function createResponse(success, message, data = null) {
+  const response = { success, message };
+  if (data) Object.assign(response, data);
+  
+  return ContentService
+    .createTextOutput(JSON.stringify(response))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============= UTILITY FUNCTIONS =============
+
+/**
+ * Test configuration
+ */
+function testConfig() {
+  Logger.log('Testing configuration...');
+  
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID || SpreadsheetApp.getActiveSpreadsheet().getId());
+    Logger.log('✅ Spreadsheet OK: ' + ss.getName());
+    
+    const sheet = ss.getSheetByName(CONFIG.SHEET_SUBMISSIONS);
+    Logger.log('✅ Sheet OK: ' + sheet.getName());
+    
+    const folder = getOrCreateFolder(CONFIG.FOLDER_NAME);
+    Logger.log('✅ Folder OK: ' + folder.getName());
+    
+    Logger.log('✅ All tests passed!');
+    
+  } catch (error) {
+    Logger.log('❌ Test failed: ' + error.toString());
+  }
+}
+
+/**
+ * Get current Spreadsheet ID
+ */
+function getCurrentSpreadsheetId() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const id = ss.getId();
+  Logger.log('Current Spreadsheet ID: ' + id);
+  Logger.log('Copy this to CONFIG.SPREADSHEET_ID');
+  return id;
+}
