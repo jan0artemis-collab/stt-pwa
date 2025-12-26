@@ -1,0 +1,206 @@
+/**
+ * Google Apps Script untuk STT Sekolah
+ * Menerima audio recording dan menyimpan ke Google Drive & Spreadsheet
+ */
+
+// ============= KONFIGURASI =============
+const CONFIG = {
+  SPREADSHEET_ID: 'GANTI_DENGAN_ID_SPREADSHEET_ANDA', // Ambil dari URL spreadsheet
+  SHEET_NAME: 'Data Rekaman',
+  FOLDER_NAME: 'Rekaman Audio Sekolah', // Folder di Google Drive
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB max
+};
+
+// ============= MAIN FUNCTION =============
+function doPost(e) {
+  try {
+    // Parse request
+    const data = JSON.parse(e.postData.contents);
+    
+    // Validasi data
+    if (!data.nama || !data.kegiatan || !data.audio) {
+      return createResponse(false, 'Data tidak lengkap');
+    }
+    
+    // Validasi ukuran file
+    if (data.ukuran > CONFIG.MAX_FILE_SIZE) {
+      return createResponse(false, 'File terlalu besar (max 10MB)');
+    }
+    
+    // Simpan audio ke Google Drive
+    const audioUrl = saveAudioToDrive(data);
+    
+    // Simpan metadata ke Spreadsheet
+    saveToSpreadsheet(data, audioUrl);
+    
+    return createResponse(true, 'Data berhasil disimpan', audioUrl);
+    
+  } catch (error) {
+    Logger.log('Error: ' + error.toString());
+    return createResponse(false, 'Error: ' + error.message);
+  }
+}
+
+// ============= SAVE AUDIO TO DRIVE =============
+function saveAudioToDrive(data) {
+  try {
+    // Decode base64 audio
+    const audioBlob = Utilities.newBlob(
+      Utilities.base64Decode(data.audio),
+      data.mimeType || 'audio/webm'
+    );
+    
+    // Generate filename dengan timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const extension = getFileExtension(data.mimeType);
+    const filename = `${sanitizeFilename(data.nama)}_${data.kegiatan}_${timestamp}.${extension}`;
+    
+    audioBlob.setName(filename);
+    
+    // Dapatkan atau buat folder
+    const folder = getOrCreateFolder(CONFIG.FOLDER_NAME);
+    
+    // Simpan file
+    const file = folder.createFile(audioBlob);
+    
+    // Set sharing ke anyone with link (opsional, bisa diubah)
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    Logger.log('File saved: ' + file.getName());
+    
+    return file.getUrl();
+    
+  } catch (error) {
+    throw new Error('Gagal menyimpan audio: ' + error.message);
+  }
+}
+
+// ============= SAVE TO SPREADSHEET =============
+function saveToSpreadsheet(data, audioUrl) {
+  try {
+    // Buka spreadsheet
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    let sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+    
+    // Buat sheet jika belum ada
+    if (!sheet) {
+      sheet = ss.insertSheet(CONFIG.SHEET_NAME);
+      // Tambah header
+      sheet.appendRow([
+        'Timestamp',
+        'Nama Guru',
+        'Kegiatan',
+        'Ukuran File (KB)',
+        'Durasi (detik)',
+        'Link Audio',
+        'Format'
+      ]);
+      
+      // Format header
+      const headerRange = sheet.getRange(1, 1, 1, 7);
+      headerRange.setFontWeight('bold');
+      headerRange.setBackground('#0d6efd');
+      headerRange.setFontColor('#ffffff');
+    }
+    
+    // Format timestamp
+    const timestamp = new Date(data.waktu);
+    const formattedTime = Utilities.formatDate(timestamp, 'Asia/Jakarta', 'dd/MM/yyyy HH:mm:ss');
+    
+    // Hitung ukuran dalam KB
+    const sizeKB = (data.ukuran / 1024).toFixed(2);
+    
+    // Tambah data baru
+    sheet.appendRow([
+      formattedTime,
+      data.nama,
+      data.kegiatan,
+      sizeKB,
+      '', // Durasi bisa ditambahkan jika diperlukan
+      audioUrl,
+      data.mimeType || 'audio/webm'
+    ]);
+    
+    // Auto-resize columns
+    sheet.autoResizeColumns(1, 7);
+    
+    Logger.log('Data saved to spreadsheet');
+    
+  } catch (error) {
+    throw new Error('Gagal menyimpan ke spreadsheet: ' + error.message);
+  }
+}
+
+// ============= HELPER FUNCTIONS =============
+
+function getOrCreateFolder(folderName) {
+  const folders = DriveApp.getFoldersByName(folderName);
+  
+  if (folders.hasNext()) {
+    return folders.next();
+  } else {
+    return DriveApp.createFolder(folderName);
+  }
+}
+
+function getFileExtension(mimeType) {
+  const extensions = {
+    'audio/webm': 'webm',
+    'audio/webm;codecs=opus': 'webm',
+    'audio/mp4': 'm4a',
+    'audio/mpeg': 'mp3',
+    'audio/ogg': 'ogg',
+    'audio/wav': 'wav'
+  };
+  
+  return extensions[mimeType] || 'webm';
+}
+
+function sanitizeFilename(name) {
+  // Hapus karakter yang tidak valid untuk nama file
+  return name.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
+}
+
+function createResponse(success, message, url = null) {
+  const response = {
+    success: success,
+    message: message
+  };
+  
+  if (url) {
+    response.url = url;
+  }
+  
+  return ContentService
+    .createTextOutput(JSON.stringify(response))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============= TEST FUNCTION =============
+function testConfig() {
+  Logger.log('Testing configuration...');
+  
+  try {
+    // Test spreadsheet access
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    Logger.log('✓ Spreadsheet accessible: ' + ss.getName());
+    
+    // Test folder creation
+    const folder = getOrCreateFolder(CONFIG.FOLDER_NAME);
+    Logger.log('✓ Folder ready: ' + folder.getName());
+    
+    Logger.log('✓ All tests passed!');
+    
+  } catch (error) {
+    Logger.log('✗ Test failed: ' + error.message);
+  }
+}
+
+// ============= UTILITY: GET SPREADSHEET ID =============
+function getActiveSpreadsheetId() {
+  // Jalankan fungsi ini untuk mendapatkan ID spreadsheet aktif
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  Logger.log('Spreadsheet ID: ' + ss.getId());
+  Logger.log('Copy ID ini ke CONFIG.SPREADSHEET_ID');
+  return ss.getId();
+}
