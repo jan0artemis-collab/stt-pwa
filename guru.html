@@ -255,41 +255,63 @@
       border-radius: 8px;
       margin: 12px 0;
     }
-    .audio-section audio {
+    
+    /* IFRAME AUDIO PLAYER */
+    .audio-iframe {
       width: 100%;
-      margin-top: 8px;
-    }
-    .audio-error {
-      background: #fff3cd;
-      border-left: 4px solid #ffc107;
-      padding: 12px;
-      margin-top: 8px;
-      border-radius: 4px;
-      font-size: 13px;
-      color: #856404;
-    }
-    .audio-links {
+      height: 60px;
+      border: none;
+      border-radius: 8px;
+      background: white;
       margin-top: 12px;
+    }
+    
+    .audio-tabs {
       display: flex;
-      gap: 12px;
+      gap: 8px;
+      margin-top: 12px;
       flex-wrap: wrap;
     }
-    .audio-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
+    
+    .audio-tab {
+      padding: 8px 16px;
       background: #667eea;
       color: white;
-      text-decoration: none;
+      border: none;
       border-radius: 6px;
+      cursor: pointer;
       font-size: 13px;
+      font-weight: 600;
       transition: all 0.3s;
     }
-    .audio-link:hover {
+    
+    .audio-tab:hover {
       background: #5568d3;
       transform: translateY(-2px);
     }
+    
+    .audio-tab.active {
+      background: #27ae60;
+    }
+    
+    .audio-player-container {
+      margin-top: 12px;
+    }
+    
+    .audio-player {
+      width: 100%;
+      margin-top: 8px;
+    }
+    
+    .audio-info {
+      background: #e8f4f8;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 8px;
+      font-size: 13px;
+      color: #2c3e50;
+    }
+    
     .catatan-box {
       background: #e8f4f8;
       padding: 12px;
@@ -338,11 +360,6 @@
       text-align: center;
       padding: 60px 20px;
       color: #7f8c8d;
-    }
-    .empty-state img {
-      width: 120px;
-      opacity: 0.5;
-      margin-bottom: 16px;
     }
     .loading {
       text-align: center;
@@ -583,44 +600,80 @@ async function loadSubmissions() {
   }
 }
 
-// === CONVERT DRIVE URL FOR STREAMING ===
-function convertDriveUrl(url) {
+// === EXTRACT FILE ID ===
+function extractFileId(url) {
   if (!url) return null;
   
-  // Extract file ID dari berbagai format Google Drive URL
-  let fileId = null;
-  
   // Format: https://drive.google.com/file/d/FILE_ID/view
-  const match1 = url.match(/\/file\/d\/([^\/]+)/);
-  if (match1) {
-    fileId = match1[1];
-  }
+  let match = url.match(/\/file\/d\/([^\/\?]+)/);
+  if (match) return match[1];
   
   // Format: https://drive.google.com/open?id=FILE_ID
-  const match2 = url.match(/[?&]id=([^&]+)/);
-  if (match2) {
-    fileId = match2[1];
-  }
+  match = url.match(/[?&]id=([^&]+)/);
+  if (match) return match[1];
   
   // Format: https://drive.google.com/uc?id=FILE_ID
-  const match3 = url.match(/\/uc\?.*id=([^&]+)/);
-  if (match3) {
-    fileId = match3[1];
-  }
+  match = url.match(/\/uc\?.*id=([^&]+)/);
+  if (match) return match[1];
+  
+  return null;
+}
+
+// === SWITCH PLAYER MODE ===
+function switchPlayer(index, mode) {
+  const submission = filteredSubmissions[index];
+  const fileId = extractFileId(submission.audioUrl);
   
   if (!fileId) {
-    console.error('Could not extract file ID from URL:', url);
-    return null;
+    alert('❌ File ID tidak valid');
+    return;
   }
   
-  // Return multiple URL formats for fallback
-  return {
-    fileId: fileId,
-    streamUrl: `https://drive.google.com/uc?export=view&id=${fileId}`,
-    downloadUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
-    previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
-    directUrl: url
-  };
+  const playerContainer = document.getElementById(`player_${index}`);
+  const buttons = document.querySelectorAll(`[data-player="${index}"]`);
+  
+  // Update active button
+  buttons.forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  // Render player based on mode
+  if (mode === 'iframe') {
+    playerContainer.innerHTML = `
+      <iframe 
+        class="audio-iframe" 
+        src="https://drive.google.com/file/d/${fileId}/preview"
+        allow="autoplay"
+      ></iframe>
+      <div class="audio-info">
+        🎵 Gunakan kontrol player Google Drive di atas untuk memutar audio
+      </div>
+    `;
+  } else if (mode === 'html5') {
+    playerContainer.innerHTML = `
+      <audio class="audio-player" controls preload="metadata">
+        <source src="https://drive.google.com/uc?export=download&id=${fileId}" type="audio/webm">
+        <source src="https://drive.google.com/uc?export=download&id=${fileId}" type="audio/mpeg">
+        <source src="https://drive.google.com/uc?export=download&id=${fileId}" type="audio/mp4">
+        Browser tidak mendukung
+      </audio>
+      <div class="audio-info">
+        ℹ️ Jika tidak bisa diputar, gunakan mode "Google Drive Player" atau "Download"
+      </div>
+    `;
+  } else if (mode === 'download') {
+    playerContainer.innerHTML = `
+      <div class="audio-info">
+        📥 <strong>Download File Audio</strong><br>
+        <a href="https://drive.google.com/uc?export=download&id=${fileId}" 
+           download 
+           style="color: #667eea; text-decoration: underline;">
+          Klik di sini untuk download file audio
+        </a>
+        <br><br>
+        Setelah di-download, Anda bisa memutar file dengan media player lokal (VLC, Windows Media Player, dll)
+      </div>
+    `;
+  }
 }
 
 // === RENDER ===
@@ -642,7 +695,7 @@ function renderSubmissions() {
   filteredSubmissions.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
   
   container.innerHTML = filteredSubmissions.map((sub, index) => {
-    const audioUrls = convertDriveUrl(sub.audioUrl);
+    const fileId = extractFileId(sub.audioUrl);
     
     return `
     <div class="submission-item">
@@ -670,42 +723,32 @@ function renderSubmissions() {
       
       <div class="audio-section">
         <strong>🎵 Rekaman Audio:</strong>
-        ${audioUrls ? `
-          <audio 
-            id="audio_${index}" 
-            controls 
-            preload="metadata"
-            controlsList="nodownload"
-            onloadstart="console.log('Loading audio ${index}...')"
-            onloadeddata="console.log('Audio ${index} loaded successfully')"
-            onerror="handleAudioError(${index})"
-          >
-            <source src="${audioUrls.streamUrl}" type="audio/webm">
-            <source src="${audioUrls.streamUrl}" type="audio/mpeg">
-            <source src="${audioUrls.streamUrl}" type="audio/mp4">
-            Browser Anda tidak mendukung pemutar audio.
-          </audio>
-          <div class="audio-links">
-            <a href="${audioUrls.directUrl}" target="_blank" class="audio-link">
-              📂 Buka di Google Drive
-            </a>
-            <a href="${audioUrls.downloadUrl}" target="_blank" class="audio-link" download>
-              ⬇️ Download Audio
-            </a>
-            <button class="audio-link" style="border: none; cursor: pointer;" onclick="tryAlternativeUrl(${index}, '${audioUrls.previewUrl}')">
-              🔄 Coba Format Alternatif
-            </button>
+        
+        <div class="audio-tabs">
+          <button class="audio-tab active" data-player="${index}" onclick="switchPlayer(${index}, 'iframe')">
+            🎬 Google Drive Player
+          </button>
+          <button class="audio-tab" data-player="${index}" onclick="switchPlayer(${index}, 'html5')">
+            🎵 HTML5 Player
+          </button>
+          <button class="audio-tab" data-player="${index}" onclick="switchPlayer(${index}, 'download')">
+            📥 Download
+          </button>
+          <a href="${sub.audioUrl}" target="_blank" class="audio-tab" style="text-decoration: none;">
+            📂 Buka di Drive
+          </a>
+        </div>
+        
+        <div id="player_${index}" class="audio-player-container">
+          <iframe 
+            class="audio-iframe" 
+            src="https://drive.google.com/file/d/${fileId}/preview"
+            allow="autoplay"
+          ></iframe>
+          <div class="audio-info">
+            🎵 Gunakan kontrol player Google Drive di atas untuk memutar audio
           </div>
-        ` : `
-          <div class="audio-error">
-            ⚠️ URL audio tidak valid. Silakan buka file di Google Drive.
-            <div class="audio-links">
-              <a href="${sub.audioUrl}" target="_blank" class="audio-link">
-                📂 Buka di Google Drive
-              </a>
-            </div>
-          </div>
-        `}
+        </div>
       </div>
       
       <div class="grading-section">
@@ -723,40 +766,6 @@ function renderSubmissions() {
       </div>
     </div>
   `}).join('');
-}
-
-function handleAudioError(index) {
-  console.error(`Audio ${index} failed to load`);
-  const audioElement = document.getElementById(`audio_${index}`);
-  if (audioElement) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'audio-error';
-    errorDiv.innerHTML = `
-      ⚠️ Tidak dapat memutar audio. Kemungkinan penyebab:
-      <ul style="margin: 8px 0 0 20px; font-size: 12px;">
-        <li>File masih diproses oleh Google Drive</li>
-        <li>Permission file tidak public</li>
-        <li>Format audio tidak didukung browser</li>
-      </ul>
-      <div style="margin-top: 8px;">Silakan gunakan tombol "Buka di Google Drive" atau "Download Audio" di atas.</div>
-    `;
-    audioElement.parentElement.appendChild(errorDiv);
-  }
-}
-
-function tryAlternativeUrl(index, previewUrl) {
-  const audioElement = document.getElementById(`audio_${index}`);
-  if (audioElement) {
-    // Extract file ID from preview URL
-    const match = previewUrl.match(/\/file\/d\/([^\/]+)/);
-    if (match) {
-      const fileId = match[1];
-      const newUrl = `https://docs.google.com/uc?export=open&id=${fileId}`;
-      audioElement.src = newUrl;
-      audioElement.load();
-      console.log('Trying alternative URL:', newUrl);
-    }
-  }
 }
 
 function updateStats() {
