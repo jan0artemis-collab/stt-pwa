@@ -75,7 +75,7 @@
     }
     .grid-2 {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 2fr 1fr;
       gap: 12px;
     }
     button {
@@ -239,34 +239,21 @@
   <div id="loginSection" class="login-container active">
     <div class="header">
       <h1>🎤 Portal Murid</h1>
-      <p>Masukkan kode akses kelas Anda</p>
+      <p>Masukkan kode tugas dari guru Anda</p>
     </div>
 
     <div class="form-group">
-      <label for="loginKelas">Pilih Kelas<span class="required">*</span></label>
-      <select id="loginKelas">
-        <option value="">Pilih Kelas</option>
-        <option value="7A">7A</option>
-        <option value="7B">7B</option>
-        <option value="7C">7C</option>
-        <option value="8A">8A</option>
-        <option value="8B">8B</option>
-        <option value="8C">8C</option>
-        <option value="9A">9A</option>
-        <option value="9B">9B</option>
-        <option value="9C">9C</option>
-      </select>
+      <label for="kodeAccess">Kode Tugas<span class="required">*</span></label>
+      <input id="kodeAccess" type="text" placeholder="Contoh: MTK-AVIS-7A-AB12-XY34" style="text-transform: uppercase;">
+      <div style="margin-top: 8px; font-size: 13px; color: #666;">
+        💡 Masukkan kode yang diberikan oleh guru
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="loginCode">Kode Akses<span class="required">*</span></label>
-      <input id="loginCode" type="password" placeholder="Masukkan kode dari guru">
-    </div>
-
-    <button onclick="login()" class="btn-submit">🔐 Masuk</button>
+    <button onclick="verifyCode()" class="btn-submit">🔐 Masuk</button>
 
     <div style="margin-top: 20px; padding: 12px; background: #fff3cd; border-radius: 8px; font-size: 13px; color: #856404;">
-      💡 <strong>Tip:</strong> Minta kode akses kepada guru mata pelajaran Anda
+      💡 <strong>Tip:</strong> Minta kode tugas kepada guru mata pelajaran Anda
     </div>
   </div>
 
@@ -278,10 +265,20 @@
     </div>
 
     <div class="user-badge">
-      <div class="user-info">
-        <strong>Kelas:</strong> <span id="kelasUser"></span>
+      <div>
+        <div class="user-info">
+          <strong>📚 Mapel:</strong> <span id="infoMapel"></span>
+        </div>
+        <div class="user-info">
+          <strong>📝 Tugas:</strong> <span id="infoTugas"></span>
+        </div>
       </div>
       <button class="btn-logout" onclick="logout()">Keluar</button>
+    </div>
+
+    <div style="background: #e8f4f8; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #0d6efd;">
+      <strong style="color: #084298;">📋 Instruksi Tugas:</strong>
+      <p id="infoMateri" style="margin-top: 8px; color: #333; line-height: 1.6;"></p>
     </div>
 
     <div class="form-group">
@@ -289,37 +286,34 @@
       <input id="nama" type="text" placeholder="Contoh: Budi Santoso">
     </div>
 
-    <div class="form-group">
-      <label for="absen">No. Absen<span class="required">*</span></label>
-      <input id="absen" type="number" min="1" max="50" placeholder="1-50">
+    <div class="grid-2">
+      <div class="form-group">
+        <label for="kelas">Kelas<span class="required">*</span></label>
+        <select id="kelas">
+          <option value="">Pilih Kelas</option>
+          <option value="7A">7A</option>
+          <option value="7B">7B</option>
+          <option value="7C">7C</option>
+          <option value="8A">8A</option>
+          <option value="8B">8B</option>
+          <option value="8C">8C</option>
+          <option value="9A">9A</option>
+          <option value="9B">9B</option>
+          <option value="9C">9C</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="absen">No. Absen<span class="required">*</span></label>
+        <input id="absen" type="number" min="1" max="50" placeholder="1-50">
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="mapel">Mata Pelajaran<span class="required">*</span></label>
-      <select id="mapel">
-        <option value="">Pilih Mata Pelajaran</option>
-        <option value="Matematika">Matematika</option>
-        <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-        <option value="Bahasa Inggris">Bahasa Inggris</option>
-        <option value="IPA">IPA</option>
-        <option value="IPS">IPS</option>
-        <option value="PKN">PKN</option>
-        <option value="Agama">Agama</option>
-        <option value="Seni Budaya">Seni Budaya</option>
-        <option value="PJOK">PJOK</option>
-        <option value="Prakarya">Prakarya</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="judul">Judul Tugas<span class="required">*</span></label>
-      <input id="judul" type="text" placeholder="Contoh: Latihan Soal Bab 3">
-    </div>
-
-    <div class="form-group">
-      <label for="catatan">Catatan (opsional)</label>
-      <textarea id="catatan" placeholder="Tambahkan catatan jika ada..."></textarea>
-    </div>
+    <!-- HIDDEN FIELDS - Auto filled from code -->
+    <input type="hidden" id="mapel">
+    <input type="hidden" id="judul">
+    <input type="hidden" id="catatan">
+    <input type="hidden" id="namaGuru">
 
     <div id="statusDiv"></div>
     <div id="timerDiv"></div>
@@ -345,25 +339,13 @@
 <script>
 // KONFIGURASI - Ganti URL Google Apps Script Anda
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwEdF_TXgxl-luItldO0yiKwMCIQ7BkVEIZsDnqbLx3l8MIyp6nvd7xKqw_T4UeNIzX/exec',
-  
-  // Kode akses per kelas (dalam production, simpan di server)
-  CLASS_CODES: {
-    '7A': 'KELAS7A2024',
-    '7B': 'KELAS7B2024',
-    '7C': 'KELAS7C2024',
-    '8A': 'KELAS8A2024',
-    '8B': 'KELAS8B2024',
-    '8C': 'KELAS8C2024',
-    '9A': 'KELAS9A2024',
-    '9B': 'KELAS9B2024',
-    '9C': 'KELAS9C2024'
-  }
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyPTmlMudkfEy5UABQ-gCKJp32WulFOA81gc2qLKGjrhzhr4L-ElTMjKnzzizMQv8NdYQ/exec'
 };
 
 // State management (in memory, tidak pakai localStorage)
 let currentUser = {
-  kelas: null,
+  kodeTask: null,
+  taskData: null,
   authenticated: false
 };
 
@@ -373,47 +355,82 @@ let audioBlob = null;
 let timerInterval;
 let recordingSeconds = 0;
 
-// === AUTHENTICATION ===
-function login() {
-  const kelas = document.getElementById('loginKelas').value;
-  const code = document.getElementById('loginCode').value.trim();
+// === VERIFY TASK CODE ===
+async function verifyCode() {
+  const kodeInput = document.getElementById('kodeAccess').value.trim().toUpperCase();
   
-  if (!kelas) {
-    alert('❌ Pilih kelas terlebih dahulu!');
+  if (!kodeInput) {
+    alert('❌ Masukkan kode tugas!');
     return;
   }
   
-  if (!code) {
-    alert('❌ Masukkan kode akses!');
-    return;
-  }
+  // Show loading
+  const btn = event.target;
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Memverifikasi kode...';
   
-  // Validasi kode
-  if (CONFIG.CLASS_CODES[kelas] === code) {
-    currentUser.kelas = kelas;
-    currentUser.authenticated = true;
+  try {
+    // Verify code from server
+    const response = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=verifyTask&code=' + encodeURIComponent(kodeInput));
+    const data = await response.json();
     
-    // Tampilkan form utama
-    document.getElementById('loginSection').classList.remove('active');
-    document.getElementById('mainSection').classList.add('active');
-    document.getElementById('kelasUser').textContent = kelas;
-    
-    // Reset login form
-    document.getElementById('loginCode').value = '';
-  } else {
-    alert('❌ Kode akses salah! Silakan coba lagi atau hubungi guru Anda.');
+    if (data.success && data.taskData) {
+      // Code valid, load task data
+      currentUser.kodeTask = kodeInput;
+      currentUser.taskData = data.taskData;
+      currentUser.authenticated = true;
+      
+      // Show main form with auto-filled data
+      showMainForm();
+    } else {
+      alert('❌ Kode tugas tidak valid atau sudah kadaluarsa! Periksa kembali kode dari guru Anda.');
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  } catch (error) {
+    console.error('Error verifying code:', error);
+    alert('❌ Gagal memverifikasi kode. Pastikan koneksi internet Anda stabil.');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
+function showMainForm() {
+  const task = currentUser.taskData;
+  
+  // Hide login, show main form
+  document.getElementById('loginSection').classList.remove('active');
+  document.getElementById('mainSection').classList.add('active');
+  
+  // Fill task info
+  document.getElementById('infoMapel').textContent = task.mapel;
+  document.getElementById('infoTugas').textContent = task.judulTugas;
+  document.getElementById('infoMateri').textContent = task.materi;
+  
+  // Set hidden fields
+  document.getElementById('mapel').value = task.mapel;
+  document.getElementById('judul').value = task.judulTugas;
+  document.getElementById('catatan').value = task.materi; // Instruksi as catatan
+  document.getElementById('namaGuru').value = task.namaGuru;
+  
+  // Pre-select kelas if specified in task
+  if (task.kelas) {
+    document.getElementById('kelas').value = task.kelas;
   }
 }
 
 function logout() {
   currentUser = {
-    kelas: null,
+    kodeTask: null,
+    taskData: null,
     authenticated: false
   };
   
   // Kembali ke halaman login
   document.getElementById('mainSection').classList.remove('active');
   document.getElementById('loginSection').classList.add('active');
+  document.getElementById('kodeAccess').value = '';
   
   // Reset form
   resetForm();
@@ -514,28 +531,22 @@ function startTimer() {
 
 function validateForm() {
   const nama = document.getElementById('nama').value.trim();
+  const kelas = document.getElementById('kelas').value;
   const absen = document.getElementById('absen').value;
-  const mapel = document.getElementById('mapel').value;
-  const judul = document.getElementById('judul').value.trim();
   
   if (!nama) {
     alert('❌ Nama lengkap harus diisi!');
     document.getElementById('nama').focus();
     return false;
   }
+  if (!kelas) {
+    alert('❌ Kelas harus dipilih!');
+    document.getElementById('kelas').focus();
+    return false;
+  }
   if (!absen || absen < 1) {
     alert('❌ Nomor absen harus diisi!');
     document.getElementById('absen').focus();
-    return false;
-  }
-  if (!mapel) {
-    alert('❌ Mata pelajaran harus dipilih!');
-    document.getElementById('mapel').focus();
-    return false;
-  }
-  if (!judul) {
-    alert('❌ Judul tugas harus diisi!');
-    document.getElementById('judul').focus();
     return false;
   }
   
@@ -562,12 +573,14 @@ async function kirimTugas() {
       
       const payload = {
         type: 'submission',
+        kodeTask: currentUser.kodeTask,
         nama: document.getElementById('nama').value.trim(),
-        kelas: currentUser.kelas,
+        kelas: document.getElementById('kelas').value,
         absen: document.getElementById('absen').value,
         mapel: document.getElementById('mapel').value,
-        judul: document.getElementById('judul').value.trim(),
-        catatan: document.getElementById('catatan').value.trim(),
+        judul: document.getElementById('judul').value,
+        catatan: document.getElementById('catatan').value,
+        namaGuru: document.getElementById('namaGuru').value,
         audio: base64Audio,
         mimeType: audioBlob.type,
         ukuran: audioBlob.size,
@@ -584,7 +597,7 @@ async function kirimTugas() {
       });
       
       // Mode no-cors tidak bisa baca response, jadi assume success
-      alert('✅ Tugas berhasil dikirim ke guru!');
+      alert('✅ Tugas berhasil dikirim ke ' + payload.namaGuru + '!');
       resetForm();
       
     };
@@ -597,10 +610,8 @@ async function kirimTugas() {
 
 function resetForm() {
   document.getElementById('nama').value = '';
+  document.getElementById('kelas').value = '';
   document.getElementById('absen').value = '';
-  document.getElementById('mapel').value = '';
-  document.getElementById('judul').value = '';
-  document.getElementById('catatan').value = '';
   document.getElementById('audioPlayer').classList.remove('show');
   document.getElementById('audioPlayer').src = '';
   document.getElementById('infoDiv').innerHTML = '';
