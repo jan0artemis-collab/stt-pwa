@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Buat Kode Tugas - Portal Guru</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2c3e50">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 32px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .header p {
+      opacity: 0.9;
+    }
+    .content {
+      padding: 32px;
+    }
+    .form-section {
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    .form-section h2 {
+      color: #2c3e50;
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 14px;
+    }
+    label .required {
+      color: #e74c3c;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: all 0.3s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    .btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+      margin-top: 12px;
+    }
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+    .code-result {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 32px;
+      border-radius: 12px;
+      text-align: center;
+      margin-top: 24px;
+      display: none;
+    }
+    .code-result.show {
+      display: block;
+      animation: slideIn 0.5s;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .code-display {
+      background: rgba(255,255,255,0.2);
+      padding: 24px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-size: 32px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+    }
+    .code-info {
+      background: rgba(255,255,255,0.1);
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      text-align: left;
+      font-size: 14px;
+    }
+    .code-info p {
+      margin: 8px 0;
+    }
+    .btn-copy {
+      background: white;
+      color: #667eea;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 8px;
+      transition: all 0.3s;
+    }
+    .btn-copy:hover {
+      background: #f0f0f0;
+      transform: scale(1.05);
+    }
+    .task-list {
+      margin-top: 32px;
+    }
+    .task-item {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.3s;
+    }
+    .task-item:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+    .task-code {
+      font-size: 18px;
+      font-weight: bold;
+      color: #667eea;
+      font-family: 'Courier New', monospace;
+    }
+    .task-meta {
+      font-size: 13px;
+      color: #7f8c8d;
+      margin-top: 8px;
+    }
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 13px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #667eea;
+      color: white;
+    }
+    .btn-small:hover {
+      background: #5568d3;
+    }
+    .btn-delete {
+      background: #e74c3c;
+    }
+    .btn-delete:hover {
+      background: #c0392b;
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    .alert-info {
+      background: #e8f4f8;
+      color: #084298;
+      border-left: 4px solid #0d6efd;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📝 Buat Kode Tugas</h1>
+    <p>Generate kode untuk murid mengumpulkan tugas</p>
+  </div>
+
+  <div class="content">
+    <div class="alert alert-info">
+      💡 <strong>Cara Kerja:</strong> Buat kode tugas dengan mengisi form di bawah. Kode yang dihasilkan berikan kepada murid. Saat murid memasukkan kode, form akan otomatis terisi!
+    </div>
+
+    <div class="form-section">
+      <h2>📋 Informasi Tugas</h2>
+
+      <div class="form-group">
+        <label for="namaGuru">Nama Guru<span class="required">*</span></label>
+        <input id="namaGuru" type="text" placeholder="Contoh: Avis Sumantri">
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="mapel">Mata Pelajaran<span class="required">*</span></label>
+          <select id="mapel">
+            <option value="">Pilih Mata Pelajaran</option>
+            <option value="Matematika">Matematika</option>
+            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+            <option value="Bahasa Inggris">Bahasa Inggris</option>
+            <option value="IPA">IPA</option>
+            <option value="IPS">IPS</option>
+            <option value="PKN">PKN</option>
+            <option value="Agama">Agama</option>
+            <option value="Seni Budaya">Seni Budaya</option>
+            <option value="PJOK">PJOK</option>
+            <option value="Prakarya">Prakarya</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="kelas">Untuk Kelas<span class="required">*</span></label>
+          <select id="kelas">
+            <option value="">Pilih Kelas</option>
+            <option value="7A">7A</option>
+            <option value="7B">7B</option>
+            <option value="7C">7C</option>
+            <option value="8A">8A</option>
+            <option value="8B">8B</option>
+            <option value="8C">8C</option>
+            <option value="9A">9A</option>
+            <option value="9B">9B</option>
+            <option value="9C">9C</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="judulTugas">Judul Tugas<span class="required">*</span></label>
+        <input id="judulTugas" type="text" placeholder="Contoh: Latihan Soal Pythagoras">
+      </div>
+
+      <div class="form-group">
+        <label for="materi">Materi / Instruksi Tugas<span class="required">*</span></label>
+        <textarea id="materi" placeholder="Contoh: Jelaskan teorema Pythagoras dengan kata-kata sendiri dan berikan contoh penggunaannya dalam kehidupan sehari-hari"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="deadline">Deadline (opsional)</label>
+        <input id="deadline" type="datetime-local">
+      </div>
+
+      <button class="btn btn-primary" onclick="generateCode()">
+        ✨ Generate Kode Tugas
+      </button>
+    </div>
+
+    <!-- HASIL GENERATE KODE -->
+    <div id="codeResult" class="code-result">
+      <h2 style="margin-bottom: 16px;">✅ Kode Tugas Berhasil Dibuat!</h2>
+      
+      <div class="code-display" id="codeDisplay"></div>
+      
+      <div style="margin: 16px 0;">
+        <button class="btn-copy" onclick="copyCode()">📋 Copy Kode</button>
+        <button class="btn-copy" onclick="shareWhatsApp()">📱 Share via WhatsApp</button>
+      </div>
+
+      <div class="code-info">
+        <p><strong>📚 Mata Pelajaran:</strong> <span id="infoMapel"></span></p>
+        <p><strong>📝 Judul Tugas:</strong> <span id="infoJudul"></span></p>
+        <p><strong>👥 Untuk Kelas:</strong> <span id="infoKelas"></span></p>
+        <p><strong>📅 Deadline:</strong> <span id="infoDeadline"></span></p>
+      </div>
+
+      <button class="btn btn-secondary" onclick="resetForm()">
+        ➕ Buat Kode Tugas Baru
+      </button>
+    </div>
+
+    <!-- DAFTAR TUGAS YANG SUDAH DIBUAT -->
+    <div class="task-list">
+      <h2 style="color: #2c3e50; margin-bottom: 16px;">📚 Daftar Kode Tugas Aktif</h2>
+      <div id="taskList">
+        <p style="text-align: center; color: #7f8c8d; padding: 20px;">
+          Belum ada kode tugas. Buat kode pertama Anda!
+        </p>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; text-align: center;">
+      <a href="guru.html" style="color: #667eea; text-decoration: none; font-weight: 600;">
+        ← Kembali ke Dashboard Guru
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// KONFIGURASI
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyPTmlMudkfEy5UABQ-gCKJp32WulFOA81gc2qLKGjrhzhr4L-ElTMjKnzzizMQv8NdYQ/exec'
+};
+
+// State (in memory)
+let allTasks = [];
+let currentGeneratedCode = null;
+
+// Load tasks on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadTasks();
+});
+
+// === GENERATE CODE ===
+function generateCode() {
+  const namaGuru = document.getElementById('namaGuru').value.trim();
+  const mapel = document.getElementById('mapel').value;
+  const kelas = document.getElementById('kelas').value;
+  const judulTugas = document.getElementById('judulTugas').value.trim();
+  const materi = document.getElementById('materi').value.trim();
+  const deadline = document.getElementById('deadline').value;
+
+  // Validasi
+  if (!namaGuru) {
+    alert('❌ Nama guru harus diisi!');
+    return;
+  }
+  if (!mapel) {
+    alert('❌ Pilih mata pelajaran!');
+    return;
+  }
+  if (!kelas) {
+    alert('❌ Pilih kelas!');
+    return;
+  }
+  if (!judulTugas) {
+    alert('❌ Judul tugas harus diisi!');
+    return;
+  }
+  if (!materi) {
+    alert('❌ Materi/instruksi tugas harus diisi!');
+    return;
+  }
+
+  // Generate task data
+  const taskData = {
+    namaGuru: namaGuru,
+    mapel: mapel,
+    kelas: kelas,
+    judulTugas: judulTugas,
+    materi: materi,
+    deadline: deadline || null,
+    createdAt: new Date().toISOString()
+  };
+
+  // Generate unique code
+  const code = createTaskCode(taskData);
+  taskData.code = code;
+
+  // Save to server
+  saveTaskToServer(taskData);
+
+  // Display result
+  displayGeneratedCode(taskData);
+}
+
+function createTaskCode(taskData) {
+  // Create readable code format: MAPEL-GURU-KELAS-TIMESTAMP
+  const mapelCode = taskData.mapel.substring(0, 3).toUpperCase();
+  const guruCode = taskData.namaGuru.split(' ')[0].substring(0, 4).toUpperCase();
+  const kelasCode = taskData.kelas;
+  const timestamp = Date.now().toString(36).substring(-4).toUpperCase();
+  
+  const readableCode = `${mapelCode}-${guruCode}-${kelasCode}-${timestamp}`;
+  
+  // Encode full data to base64 for validation
+  const dataString = JSON.stringify({
+    g: taskData.namaGuru,
+    m: taskData.mapel,
+    k: taskData.kelas,
+    j: taskData.judulTugas,
+    i: taskData.materi,
+    d: taskData.deadline,
+    t: taskData.createdAt
+  });
+  
+  const encodedData = btoa(encodeURIComponent(dataString));
+  
+  // Combine: READABLE-CODE + encoded hash (first 8 chars for verification)
+  const verificationHash = encodedData.substring(0, 8);
+  const finalCode = `${readableCode}-${verificationHash}`;
+  
+  return finalCode;
+}
+
+function displayGeneratedCode(taskData) {
+  currentGeneratedCode = taskData;
+  
+  document.getElementById('codeDisplay').textContent = taskData.code;
+  document.getElementById('infoMapel').textContent = taskData.mapel;
+  document.getElementById('infoJudul').textContent = taskData.judulTugas;
+  document.getElementById('infoKelas').textContent = taskData.kelas;
+  document.getElementById('infoDeadline').textContent = taskData.deadline 
+    ? new Date(taskData.deadline).toLocaleString('id-ID') 
+    : 'Tidak ada deadline';
+  
+  document.getElementById('codeResult').classList.add('show');
+  
+  // Scroll to result
+  document.getElementById('codeResult').scrollIntoView({ behavior: 'smooth' });
+  
+  // Add to local list
+  allTasks.unshift(taskData);
+  renderTaskList();
+}
+
+function copyCode() {
+  const code = currentGeneratedCode.code;
+  navigator.clipboard.writeText(code).then(() => {
+    alert('✅ Kode berhasil dicopy! Paste ke WhatsApp atau platform lain.');
+  }).catch(() => {
+    // Fallback
+    const textArea = document.createElement('textarea');
+    textArea.value = code;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    alert('✅ Kode berhasil dicopy!');
+  });
+}
+
+function shareWhatsApp() {
+  const task = currentGeneratedCode;
+  const message = `📝 *TUGAS BARU*
+
+*Mata Pelajaran:* ${task.mapel}
+*Judul:* ${task.judulTugas}
+*Kelas:* ${task.kelas}
+*Dari:* ${task.namaGuru}
+
+*Instruksi:*
+${task.materi}
+
+${task.deadline ? `*Deadline:* ${new Date(task.deadline).toLocaleString('id-ID')}` : ''}
+
+*KODE TUGAS:*
+\`${task.code}\`
+
+Masukkan kode di atas di portal pengumpulan tugas voice.
+Link: https://jan0artemis-collab.github.io/stt-pwa/`;
+
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, '_blank');
+}
+
+function resetForm() {
+  document.getElementById('namaGuru').value = '';
+  document.getElementById('mapel').value = '';
+  document.getElementById('kelas').value = '';
+  document.getElementById('judulTugas').value = '';
+  document.getElementById('materi').value = '';
+  document.getElementById('deadline').value = '';
+  document.getElementById('codeResult').classList.remove('show');
+  currentGeneratedCode = null;
+}
+
+// === SAVE TO SERVER ===
+async function saveTaskToServer(taskData) {
+  try {
+    const payload = {
+      type: 'saveTask',
+      taskData: taskData
+    };
+    
+    await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    console.log('Task saved to server');
+  } catch (error) {
+    console.error('Error saving task:', error);
+  }
+}
+
+// === LOAD TASKS ===
+async function loadTasks() {
+  try {
+    const response = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=getTasks');
+    const data = await response.json();
+    
+    if (data.success && data.tasks) {
+      allTasks = data.tasks;
+      renderTaskList();
+    }
+  } catch (error) {
+    console.error('Error loading tasks:', error);
+  }
+}
+
+function renderTaskList() {
+  const container = document.getElementById('taskList');
+  
+  if (allTasks.length === 0) {
+    container.innerHTML = `
+      <p style="text-align: center; color: #7f8c8d; padding: 20px;">
+        Belum ada kode tugas. Buat kode pertama Anda!
+      </p>
+    `;
+    return;
+  }
+  
+  container.innerHTML = allTasks.map((task, index) => `
+    <div class="task-item">
+      <div class="task-header">
+        <div>
+          <div class="task-code">${task.code}</div>
+          <div style="margin-top: 8px;">
+            <strong>${task.mapel}</strong> - ${task.judulTugas}
+          </div>
+          <div class="task-meta">
+            👨‍🏫 ${task.namaGuru} | 👥 Kelas ${task.kelas} | 
+            📅 ${new Date(task.createdAt).toLocaleDateString('id-ID')}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="btn-small" onclick="copyTaskCode('${task.code}')">📋 Copy</button>
+          <button class="btn-small btn-delete" onclick="deleteTask(${index})">🗑️</button>
+        </div>
+      </div>
+      <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-top: 12px; font-size: 13px;">
+        <strong>Instruksi:</strong> ${task.materi}
+      </div>
+    </div>
+  `).join('');
+}
+
+function copyTaskCode(code) {
+  navigator.clipboard.writeText(code).then(() => {
+    alert('✅ Kode dicopy: ' + code);
+  });
+}
+
+function deleteTask(index) {
+  if (confirm('Yakin ingin menghapus kode tugas ini?')) {
+    const task = allTasks[index];
+    allTasks.splice(index, 1);
+    renderTaskList();
+    
+    // Delete from server
+    deleteTaskFromServer(task.code);
+  }
+}
+
+async function deleteTaskFromServer(code) {
+  try {
+    const payload = {
+      type: 'deleteTask',
+      code: code
+    };
+    
+    await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (error) {
+    console.error('Error deleting task:', error);
+  }
+}
+</script>
+
+</body>
+</html>
