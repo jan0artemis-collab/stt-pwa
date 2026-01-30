@@ -315,7 +315,7 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="number" id="totalSubmissions">0</div>
-                        <div class="label">Total Submissions</div>
+                        <div class="label">Total Tugas</div>
                     </div>
                     <div class="stat-card">
                         <div class="number" id="pendingGrading">0</div>
@@ -323,7 +323,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="number" id="gradedSubmissions">0</div>
-                        <div class="label">Sudah Dinilai</div>
+                        <div class="label">Sudah Diperiksa</div>
                     </div>
                     <div class="stat-card">
                         <div class="number" id="averageScore">0</div>
@@ -348,74 +348,55 @@
     </div>
 
     <script>
-        // Simulated data - In real implementation, this would come from Submissions sheet
-        let submissions = [
-            {
-                id: "SUB001",
-                timestamp: "2026-01-30 10:30:00",
-                taskCode: "TASK001",
-                studentName: "Ahmad Rizki",
-                class: "10A",
-                absen: "01",
-                subject: "Bahasa Inggris",
-                taskTitle: "Speaking Practice - Introduction",
-                studentNote: "Saya sudah mencoba sebaik mungkin",
-                audioLink: "https://example.com/audio1.mp3",
-                duration: 120,
-                fileSize: 1500,
-                format: "MP3",
-                status: "Belum Dinilai",
-                score: null,
-                feedback: null,
-                teacherName: null,
-                gradingTime: null
-            },
-            {
-                id: "SUB002",
-                timestamp: "2026-01-30 11:15:00",
-                taskCode: "TASK002",
-                studentName: "Siti Nurhaliza",
-                class: "10B",
-                absen: "05",
-                subject: "Bahasa Indonesia",
-                taskTitle: "Pembacaan Puisi",
-                studentNote: "Mohon maaf jika masih ada kekurangan",
-                audioLink: "https://example.com/audio2.mp3",
-                duration: 90,
-                fileSize: 1200,
-                format: "MP3",
-                status: "Belum Dinilai",
-                score: null,
-                feedback: null,
-                teacherName: null,
-                gradingTime: null
-            },
-            {
-                id: "SUB003",
-                timestamp: "2026-01-29 14:20:00",
-                taskCode: "TASK001",
-                studentName: "Budi Santoso",
-                class: "10A",
-                absen: "03",
-                subject: "Bahasa Inggris",
-                taskTitle: "Speaking Practice - Introduction",
-                studentNote: "Terima kasih Bu Guru",
-                audioLink: "https://example.com/audio3.mp3",
-                duration: 150,
-                fileSize: 1800,
-                format: "MP3",
-                status: "Sudah Dinilai",
-                score: 85,
-                feedback: "Sangat baik! Pronunciasi jelas dan konten terstruktur dengan baik. Tingkatkan penggunaan vocabulary yang lebih variatif.",
-                teacherName: "Bu Ratna",
-                gradingTime: "2026-01-29 15:00:00"
+        // Config - align with index.html / guru.html
+        const CONFIG = {
+            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyPTmlMudkfEy5UABQ-gCKJp32WulFOA81gc2qLKGjrhzhr4L-ElTMjKnzzizMQv8NdYQ/exec'
+        };
+
+        // Submissions will be loaded from Apps Script
+        let submissions = [];
+
+        // Load submissions from server
+        async function loadSubmissions() {
+            try {
+                const resp = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=getSubmissions');
+                const data = await resp.json();
+                if (data.success && Array.isArray(data.submissions)) {
+                    // Map server fields to local format expected by this page
+                    submissions = data.submissions.map(s => ({
+                        id: s.id || s.submissionId || s.rowId,
+                        timestamp: s.waktu || s.waktu || s.timestamp || s.time,
+                        taskCode: s.kodeTask || s.taskCode,
+                        studentName: s.nama || s.namaMurid || s.studentName,
+                        class: s.kelas || s.class || s.kelasSiswa,
+                        absen: s.absen || s.absen || s.noAbsen,
+                        subject: s.mapel || s.subject,
+                        taskTitle: s.judul || s.taskTitle,
+                        studentNote: s.catatan || s.note || s.studentNote,
+                        audioLink: s.audioUrl || s.audio || s.audioLink,
+                        duration: s.durasi || s.duration || s.durasiDetik,
+                        fileSize: s.ukuran || s.ukuran || s.fileSize,
+                        format: s.format || 'MP3',
+                        status: s.status || (s.nilai ? 'Sudah Diperiksa' : 'Belum Diperiksa'),
+                        score: s.nilai || s.score || null,
+                        feedback: s.feedback || null,
+                        teacherName: s.guru || s.teacherName || null,
+                        gradingTime: s.waktuPenilaian || s.gradingTime || null,
+                        rowIndex: s.rowIndex
+                    }));
+                } else {
+                    submissions = [];
+                }
+            } catch (err) {
+                console.error('Error loading submissions:', err);
+                submissions = [];
             }
-        ];
+        }
 
         function updateStats() {
             const total = submissions.length;
-            const pending = submissions.filter(s => s.status === "Belum Dinilai").length;
-            const graded = submissions.filter(s => s.status === "Sudah Dinilai").length;
+            const pending = submissions.filter(s => s.status === "Belum Diperiksa").length;
+            const graded = submissions.filter(s => s.status === "Sudah Diperiksa").length;
             const scores = submissions.filter(s => s.score !== null).map(s => s.score);
             const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
 
@@ -451,7 +432,7 @@
                                 ⏱️ ${sub.duration}s | 📦 ${sub.fileSize} KB | 🎵 ${sub.format}
                             </div>
                         </div>
-                        <span class="status-badge ${sub.status === 'Sudah Dinilai' ? 'status-graded' : 'status-pending'}">
+                        <span class="status-badge ${sub.status === 'Sudah Diperiksa' ? 'status-graded' : (sub.status === 'Sedang Diproses' ? 'status-processing' : 'status-pending')}">
                             ${sub.status}
                         </span>
                     </div>
@@ -464,12 +445,12 @@
 
                     <div class="audio-controls">
                         <audio class="audio-player" controls>
-                            <source src="${sub.audioLink}" type="audio/mpeg">
+                            <source src="${convertDriveUrl(sub.audioLink)}" type="audio/mpeg">
                             Browser Anda tidak mendukung audio player.
                         </audio>
                     </div>
 
-                    ${sub.status === 'Belum Dinilai' ? `
+                    ${sub.status === 'Belum Diperiksa' ? `
                         <button class="btn btn-primary" onclick="gradeSubmission('${sub.id}')">
                             🤖 Proses & Nilai dengan AI
                         </button>
@@ -508,7 +489,7 @@
             const grading = await generateAIGrading(submission);
 
             // Update submission with grading
-            submission.status = "Sudah Dinilai";
+            submission.status = "Sudah Diperiksa";
             submission.score = grading.score;
             submission.feedback = grading.feedback;
             submission.teacherName = "Sistem AI";
@@ -516,6 +497,28 @@
 
             // Show auto-save indicator
             showAutoSave();
+
+            // Persist grading to server (if rowIndex/submissionId available)
+            try {
+                const payload = {
+                    type: 'grading',
+                    submissionId: submission.id,
+                    rowIndex: submission.rowIndex,
+                    nilai: submission.score,
+                    feedback: submission.feedback,
+                    guru: submission.teacherName,
+                    waktuPenilaian: new Date().toISOString()
+                };
+
+                await fetch(CONFIG.APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.error('Failed to save grading to server:', err);
+            }
 
             // Update UI
             updateStats();
@@ -553,10 +556,23 @@
             };
         }
 
+        // Convert Google Drive sharing URL to direct download playable URL
+        function convertDriveUrl(url) {
+            if (!url) return '#';
+            if (url.includes('drive.google.com/uc?')) return url;
+            let fileId = null;
+            const match1 = url.match(/\/file\/d\/([^\/]+)/);
+            if (match1) fileId = match1[1];
+            const match2 = url.match(/[?&]id=([^&]+)/);
+            if (match2) fileId = match2[1];
+            if (fileId) return `https://drive.google.com/uc?export=download&id=${fileId}`;
+            return url;
+        }
+
         async function regradeSubmission(submissionId) {
             if (confirm('Apakah Anda yakin ingin menilai ulang submission ini?')) {
                 const submission = submissions.find(s => s.id === submissionId);
-                submission.status = "Belum Dinilai";
+                submission.status = "Belum Diperiksa";
                 submission.score = null;
                 submission.feedback = null;
                 updateStats();
@@ -565,7 +581,7 @@
         }
 
         async function processAllPending() {
-            const pending = submissions.filter(s => s.status === "Belum Dinilai");
+            const pending = submissions.filter(s => s.status === "Belum Diperiksa");
             
             if (pending.length === 0) {
                 alert('Tidak ada submission yang perlu dinilai!');
@@ -592,13 +608,18 @@
             }, 3000);
         }
 
-        // Initialize
-        updateStats();
-        renderSubmissions();
-
-        // Auto-refresh every 30 seconds (in real app, this would fetch new data)
-        setInterval(() => {
+        // Initialize: load from server then render
+        (async () => {
+            await loadSubmissions();
             updateStats();
+            renderSubmissions();
+        })();
+
+        // Auto-refresh every 30 seconds: reload submissions
+        setInterval(async () => {
+            await loadSubmissions();
+            updateStats();
+            renderSubmissions();
         }, 30000);
     </script>
 </body>
